@@ -86,6 +86,42 @@ import { COST_LEVELS, EVIDENCE_META, SITE, TIME_LEVELS } from '../site.config';
       证据弱的地方就说证据弱（比如「冥想」「枕头怎么选」是 C 级），
       有争议的地方就说有争议（D 级）。<strong>你不该在这里找到「三天治好」这类话。</strong>
     </p>
+    {/*
+      「可核实性」这一节：把源码仓库公开出来，让读者能自己检查我们怎么写、
+      怎么标证据等级。这比在页面上声明"我们很严谨"更有说服力。
+      地址存在 SITE.githubRepo（单一来源），留空时如实显示"尚未开通"，
+      与 contactEmail 同一个处理方式——不留假地址。
+    */}
+    <p>
+      <strong>全部词条的源文件是公开的。</strong>
+      {SITE.githubRepo ? (
+        <>
+          你可以在这里逐条核对我们的写法、证据等级判断和引用方式（含
+          <a
+            href={`${SITE.githubRepo}/blob/main/CONTRIBUTING.md`}
+            rel="noopener"
+            target="_blank"
+            aria-describedby="new-window-note"
+          >
+            纠错流程
+          </a>
+          ）：
+          <a href={SITE.githubRepo} rel="noopener" target="_blank" aria-describedby="new-window-note">
+            源码仓库
+          </a>
+          。发现问题可以直接提，不用先写一封邮件。
+        </>
+      ) : (
+        <span>源码仓库尚未开通，目前请通过下面的邮箱指出问题。</span>
+      )}
+    </p>
+    {/*
+      与词条页的参考来源同一个约定：`target="_blank"` 的外链必须说明会开新窗口，
+      否则屏幕阅读器用户不知道焦点会离开本页。
+      用 aria-describedby 而不是 aria-label —— 后者会**覆盖**链接文字，
+      读屏用户就听不到"这是哪个链接"了。`check-a11y.mjs` 会校验这个 id 真实存在。
+    */}
+    <span id="new-window-note" class="sr-only">链接会在新窗口打开</span>
   </section>
 
   <section class="section">
