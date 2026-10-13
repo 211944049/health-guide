@@ -21,3 +21,7 @@ dist.zip
 .vscode/
 .idea/
 .DS_Store
+
+# 内部交接文档：包含邮箱、网络环境、备份目录名、部署细节和开发过程复盘，
+# **不公开**。仓库访问者需要的是 README.md（怎么用）和 DEPLOY.md（怎么部署）。
+HANDOFF.md
