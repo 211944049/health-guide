@@ -1,0 +1,28 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import EntryBrowser from '../components/EntryBrowser.astro';
+import SearchBox from '../components/SearchBox.astro';
+import { getEntriesSorted } from '../lib/entries';
+
+const entries = await getEntriesSorted();
+---
+
+<BaseLayout title="全部词条" description="按分类、证据等级、成本、时间、适用人群筛选全部健康生活词条。">
+  <section class="section">
+    <h1>全部词条（{entries.length}）</h1>
+    <p class="muted">想直接搜关键词，用搜索更快。</p>
+    <SearchBox />
+  </section>
+
+  <section class="section">
+    {/*
+      这里需要一个 h2，即使它视觉上不需要。
+      为什么：筛选结果里的每张卡片都是 <h3>（条目标题）。如果这一层没有 h2，
+      页面结构就从 h1 直接跳到 h3 —— 屏幕阅读器用户按标题导航时会丢失层级，
+      听到一堆平级的标题却不知道它们属于哪个区块。`check-a11y.mjs` 会校验这一点。
+      用 sr-only 而不是显示出来：视觉上这一层是筛选控件，不需要额外的大字标题。
+    */}
+    <h2 class="sr-only">筛选结果</h2>
+    <EntryBrowser entries={entries} />
+  </section>
+</BaseLayout>

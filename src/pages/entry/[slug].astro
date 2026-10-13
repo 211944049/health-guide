@@ -1,0 +1,237 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { audienceList, categoryHref, formatDate, isoDate, relatedEntries, summaryHtml, summaryOf } from '../../lib/entries';
+import { REVIEW_WARN_DAYS, daysOverdue } from '../../lib/review';
+import { CATEGORY_BY_LABEL, EVIDENCE_META, SITE } from '../../site.config';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('entries');
+  return entries.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content, headings } = await render(entry);
+
+const category = CATEGORY_BY_LABEL.get(entry.data.category);
+const evidence = EVIDENCE_META[entry.data.evidence];
+const summary = summaryOf(entry);            // 纯文本：给 meta description / JSON-LD
+const summaryRich = summaryHtml(entry);      // 带行内标记：给页面渲染
+const audience = audienceList(entry);
+const toc = headings.filter((heading) => heading.depth === 2);
+
+// 相关词条：数据来自 frontmatter 的 related（见 content.config.ts 的说明）。
+// 全量词条在这里取一次，用于把 slug 还原成词条对象。
+const allEntries = await getCollection('entries');
+const related = relatedEntries(entry, allEntries);
+
+/*
+  复核信息：把 review_after 与今天比较，得出「还有多久 / 逾期多少」。
+  页面据此提示「即将复核 / 已过期」。见 src/lib/review.ts 的策略说明。
+*/
+const review = entry.data.review_after
+  ? {
+      reviewAfter: entry.data.review_after,
+      daysOverdue: daysOverdue(isoDate(entry.data.review_after), new Date()),
+    }
+  : undefined;
+---
+
+<BaseLayout
+  title={entry.data.title}
+  description={summary}
+  indexable
+  image={`/og/entry/${entry.id}.png`}
+  crumbs={category ? [{ name: category.label, path: `/category/${category.key}/` }] : undefined}
+  entrySchema={{
+    title: entry.data.title,
+    summary,
+    updated: entry.data.updated,
+    category: entry.data.category,
+    audience,
+  }}
+>
+  <div class="article-layout">
+    {/*
+      搜索卡片用的元数据。⚠️ 必须写成「多个子元素各带一个 data-pagefind-meta」：
+      实测（见 HANDOFF 的坑清单）——写成 data-pagefind-meta="a:x|b:y" 会被整体当成一个值，
+      而重复写同名属性只保留最后一个；只有分成多个元素才都能被索引。
+      脚本是从这些 span 的**文本**里取值的（不是从属性里取），所以文本内容就是值本身。
+    */}
+    <div class="pf-meta" aria-hidden="true"><span data-pagefind-meta="title">{entry.data.title}</span><span data-pagefind-meta="evidence">{evidence.short}</span><span data-pagefind-meta="category">{category ? `${category.emoji} ${category.label}` : ''}</span><span data-pagefind-meta="cost">{entry.data.cost}</span><span data-pagefind-meta="time">{entry.data.time}</span></div>
+
+    <article class="reading">
+      <p class="small muted">
+        {category && <a href={categoryHref(entry.data.category)}>{category.emoji} {category.label}</a>}
+        <span> · 最后更新 {formatDate(entry.data.updated)}</span>
+        {entry.data.status === '简版' && <span> · 简版（待补充细节）</span>}
+      </p>
+
+      <h1>{entry.data.title}</h1>
+
+      {summaryRich && <p class="lead" set:html={summaryRich} />}
+
+      <div class="badges">
+        <span class={`badge badge-evidence-${entry.data.evidence}`}>{evidence.full}</span>
+        <span class="badge">成本 {entry.data.cost}</span>
+        <span class="badge">耗时 {entry.data.time}</span>
+        {audience.map((value) => <span class="badge">适合 {value}</span>)}
+      </div>
+
+      <Content />
+
+      <section class="meta-panel sources">
+        <h2 style="margin-top:0;font-size:1.1rem">参考来源</h2>
+        {/*
+          来源的著录格式见 scripts/lib-sources.mjs。要点：
+            · 国家标准用完整著录（有标准号，可核对）
+            · 机构文件给出**官方入口**（WHO/CDC 等的栏目页），而不是"我引用的那一份的确切链接"
+              —— 因为原始记录只写了「WHO 关于免疫接种的实况报道」，没有具体是哪一篇。
+              **这一点必须如实说明**，不能让读者以为链接就是精确出处。
+            · 页码/卷期/DOI 这些项原文没有，所以**不写**（不编造）
+          `|||` 是数据里的分隔符：前面是著录文本，后面是官方入口 URL。
+        */}
+        <ol>
+          {
+            entry.data.sources.map((source, index) => {
+              const [text, url] = String(source).split(' ||| ');
+              return (
+                <li id={`ref-${index + 1}`}>
+                  {url ? (
+                    /*
+                      整行是一条链接（2026-10-12 用户建议：不要「打开官方入口」这种重复文字，
+                      整行可点更直接）。这也更贴近 GB/T 7714 对电子资源的著录形式
+                      —— 获取和访问路径本身就是著录的一部分。
+
+                      ⚠️ 无障碍处理（用户第二轮要求去掉可见的「（在新窗口打开）」小字）：
+                      可见文字完全去掉，但**信息不能丢** —— 否则屏幕阅读器用户
+                      不知道焦点会离开当前页面。
+                      做法用 aria-describedby（**不是 aria-label**）：
+                        · aria-label 会**覆盖**链接文字，读屏用户就听不到是哪条来源了
+                        · aria-describedby 是"补充说明"，链接文字照常朗读，之后附带这句
+                      说明元素在 </ol> 之后，用 .sr-only 只给辅助技术看。
+                    */
+                    <a href={url} rel="nofollow noopener" target="_blank" aria-describedby="new-window-note">
+                      {text}
+                    </a>
+                  ) : (
+                    // 没有可访问入口的来源（原文未给出），不做成链接——否则是假的精确
+                    <span>{text}</span>
+                  )}
+                </li>
+              );
+            })
+          }
+        </ol>
+        {/*
+          只给辅助技术看的说明。放在 ol 之后一次性定义，所有外链用 aria-describedby 引用它，
+          避免每条链接都重复一遍文字。
+        */}
+        <span id="new-window-note" class="sr-only">链接会在新窗口打开</span>
+        <p class="small muted">
+          著录格式参照 GB/T 7714—2015。本页来源多为机构发布的指南、实况报道与国家标准，
+          <strong>原文没有卷期与页码</strong>，因此这些项未列出；可点击的来源指向该机构的官方栏目，
+          便于自行检索原文，<strong>不表示它是唯一的确切出处</strong>。
+          未加链接的来源是因为原文只给出机构与文件名，<strong>没有可核对的公开网址</strong>。
+        </p>
+        <p class="small muted" style="margin-bottom:0">
+          证据等级：{evidence.full} —— {evidence.desc}。
+        </p>
+      </section>
+
+      <section class="meta-panel">
+        <dl>
+          <dt>成本</dt>
+          <dd>{entry.data.cost}</dd>
+          <dt>时间</dt>
+          <dd>{entry.data.time}</dd>
+          <dt>适用人群</dt>
+          <dd>{audience.join('、')}</dd>
+          <dt>最后更新</dt>
+          <dd>
+            <time datetime={isoDate(entry.data.updated)}>{formatDate(entry.data.updated)}</time>
+          </dd>
+          {
+            review && (
+              <>
+                <dt>下次复核</dt>
+                <dd>
+                  <time datetime={isoDate(review.reviewAfter)}>{formatDate(review.reviewAfter)}</time>
+                  {review.daysOverdue > 0 ? (
+                    <span class="review-flag review-flag-late">已过期，正在核对来源</span>
+                  ) : review.daysOverdue > -REVIEW_WARN_DAYS ? (
+                    <span class="review-flag review-flag-soon">即将复核</span>
+                  ) : null}
+                </dd>
+              </>
+            )
+          }
+        </dl>
+        {/*
+          明确区分「内容改过」和「来源核对过」——这是这个词条站可信度的关键，
+          读者有权知道来源是新是旧。
+        */}
+        <p class="small muted" style="margin:0.6rem 0 0">
+          本站按证据等级定期复核来源（A/B 级 6 个月、C 级 4 个月、D 级 3 个月）。
+          「最后更新」指内容改动时间。
+        </p>
+      </section>
+
+      <section class="related">
+        <h2>相关词条</h2>
+        <ul class="entry-list">
+          {
+            related.map((item) => {
+              const itemCategory = CATEGORY_BY_LABEL.get(item.data.category);
+              const itemEvidence = EVIDENCE_META[item.data.evidence];
+              return (
+                <li>
+                  <a class="entry-card" href={`/entry/${item.id}/`}>
+                    <h3>{item.data.title}</h3>
+                    {summaryHtml(item) && <p set:html={summaryHtml(item)} />}
+                    <div class="badges">
+                      {itemCategory && (
+                        <span class="badge">
+                          {itemCategory.emoji} {itemCategory.label}
+                        </span>
+                      )}
+                      <span class={`badge badge-evidence-${item.data.evidence}`} title={itemEvidence.desc}>
+                        {itemEvidence.short}
+                      </span>
+                      <span class="badge">成本 {item.data.cost}</span>
+                      <span class="badge">耗时 {item.data.time}</span>
+                    </div>
+                  </a>
+                </li>
+              );
+            })
+          }
+        </ul>
+      </section>
+
+      <p class="notice">
+        {SITE.disclaimer} 出现持续或加重的症状、正在用药、怀孕或哺乳、或有慢性病时，先问医生再照着本文调整。
+      </p>
+
+      <p class="small muted">
+        <a href="/browse/">← 回到全部词条</a>
+        {category && <span> · <a href={categoryHref(entry.data.category)}>更多「{category.label}」词条</a></span>}
+      </p>
+    </article>
+
+    {
+      toc.length > 1 && (
+        <aside class="toc">
+          <strong>本文目录</strong>
+          <ol>
+            {toc.map((heading) => (
+              <li>
+                <a href={`#${heading.slug}`}>{heading.text}</a>
+              </li>
+            ))}
+          </ol>
+        </aside>
+      )
+    }
+  </div>
+</BaseLayout>

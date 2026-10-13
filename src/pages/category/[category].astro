@@ -1,0 +1,44 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import EntryBrowser from '../../components/EntryBrowser.astro';
+import { getEntriesSorted } from '../../lib/entries';
+import { CATEGORIES } from '../../site.config';
+
+export async function getStaticPaths() {
+  return CATEGORIES.map((category) => ({ params: { category: category.key }, props: { category } }));
+}
+
+const { category } = Astro.props;
+const entries = (await getEntriesSorted()).filter((entry) => entry.data.category === category.label);
+---
+
+<BaseLayout
+  title={`${category.label} · 生活健康词条`}
+  description={`${category.label}：${category.desc}。共 ${entries.length} 个词条，均标注证据等级、成本与时间。`}
+>
+  <section class="section">
+    <p class="small muted"><a href="/browse/">全部词条</a> / {category.label}</p>
+    <h1>{category.emoji} {category.label}</h1>
+    <p class="muted">{category.desc}</p>
+  </section>
+
+  <section class="section">
+    {/*
+      与 /browse/ 同理：卡片是 h3，这一层必须有 h2，否则结构从 h1 直接跳到 h3，
+      屏幕阅读器用户按标题导航时会丢失层级。用 sr-only 保持视觉不变。
+    */}
+    <h2 class="sr-only">{category.label} 分类下的词条</h2>
+    {
+      entries.length === 0 ? (
+        <div class="empty-state">
+          <p>这个分类的词条还在写。</p>
+          <p class="small">
+            先去<a href="/browse/">全部词条</a>看看，或者在<a href="/about/">关于页</a>告诉我们先补哪条。
+          </p>
+        </div>
+      ) : (
+        <EntryBrowser entries={entries} lockedCategory={category} />
+      )
+    }
+  </section>
+</BaseLayout>

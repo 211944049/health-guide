@@ -1,0 +1,155 @@
+---
+/**
+ * 一键回到顶部按钮。
+ *
+ * 几个刻意的决定：
+ *
+ * 1. **用 `<button>` 而不是 `<a href="#">`。**
+ *    `href="#"` 会让地址栏多一个 `#`、污染历史记录，而且对屏幕阅读器来说
+ *    "链接到一个空锚点"语义不清。这里用 button + JS 滚动，语义正确。
+ *
+ * 2. **初始 `hidden`，由 JS 决定何时显示。**
+ *    没有 JS 时按钮不该出现（点了没反应比没有更糟）。
+ *    注意：项目里有一条 `[hidden]{display:none!important}` 兜底规则
+ *    （见 check-hidden-elements.mjs），所以用 `hidden` 属性是可靠的。
+ *
+ * 3. **尊重 `prefers-reduced-motion`。**
+ *    对前庭功能敏感的人，平滑滚动会引起不适。所以用户设了"减少动态效果"时
+ *    改为瞬间跳转。这是无障碍的基本要求，不是可选优化。
+ *
+ * 4. **文字是「回到顶部」，不是「↑」。**
+ *    纯符号按钮对屏幕阅读器是空内容。这里用可见文字 + 隐藏的箭头，
+ *    既好看又能被正确朗读（check-a11y.mjs 会查"无可读文本的交互元素"）。
+ *
+ * ⚠️ 脚本用 is:inline：它必须在 HTML 里就地执行，不能被 Astro 打包成模块
+ * （模块是 defer 的，而按钮的显隐要在首屏就正确）。
+ */
+---
+
+<button type="button" id="back-to-top" class="back-to-top" hidden aria-label="回到页面顶部">
+  <span class="back-to-top-arrow" aria-hidden="true">↑</span>
+  <span class="back-to-top-text">回到顶部</span>
+</button>
+
+<script is:inline>
+  /*
+    显示阈值：滚过约 1.5 屏才出现。
+    太早出现会挡住内容；用视口高度而不是固定像素，这样长短页面表现一致。
+  */
+  (function () {
+    var btn = document.getElementById('back-to-top');
+    if (!btn) return;
+
+    var SHOW_AFTER_VIEWPORTS = 1.5;
+
+    function threshold() {
+      return window.innerHeight * SHOW_AFTER_VIEWPORTS;
+    }
+
+    function sync() {
+      var shouldShow = window.scrollY > threshold();
+      // 只在状态变化时改属性，避免滚动时反复触发样式重算
+      if (shouldShow === btn.hidden) {
+        btn.hidden = !shouldShow;
+      }
+    }
+
+    btn.addEventListener('click', function () {
+      /*
+        尊重"减少动态效果"设置。
+        注意 matchMedia 在很老的浏览器里可能不存在，所以先判断。
+      */
+      var reduce = false;
+      try {
+        reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      } catch (e) {
+        reduce = false;
+      }
+
+      if (reduce) {
+        window.scrollTo(0, 0);
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      /*
+        键盘用户点完之后，焦点还留在按钮上——而按钮会随滚动变回 hidden。
+        焦点留在一个不可见的元素上是明确的无障碍问题（用户会"跟丢"位置）。
+        所以把焦点移回页面主内容区（它有 tabindex="-1" 才能被聚焦）。
+      */
+      var main = document.getElementById('main-content');
+      if (main) {
+        main.setAttribute('tabindex', '-1');
+        main.focus({ preventScroll: true });
+      }
+    });
+
+    // 初始同步一次（刷新时可能已在中部位置）
+    sync();
+
+    /*
+      用 passive 监听：滚动监听高频触发，passive 让浏览器不必等待
+      preventDefault，滚动更顺。
+    */
+    window.addEventListener('scroll', sync, { passive: true });
+    window.addEventListener('resize', sync, { passive: true });
+  })();
+</script>
+
+<style>
+  .back-to-top {
+    position: fixed;
+    right: 1.1rem;
+    bottom: 1.1rem;
+    z-index: 40;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.55rem 0.9rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 0.88rem;
+    line-height: 1;
+    cursor: pointer;
+    /* 阴影让它从正文上"浮起来"，否则在浅色背景上边界不清 */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    /* 与其它交互元素一致的过渡；只过渡颜色，不过渡位置（避免滚动时抖动） */
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .back-to-top:hover {
+    background: var(--brand-soft);
+    border-color: var(--brand);
+  }
+
+  /* 键盘焦点要清晰可见——项目已定义 :focus 样式，这里确保不被覆盖 */
+  .back-to-top:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+
+  .back-to-top-arrow {
+    font-size: 1rem;
+    color: var(--brand);
+  }
+
+  /* 窄屏只留箭头，避免遮挡内容；文字仍存在于 DOM 中供屏幕阅读器朗读
+     （这里用 .back-to-top 的 aria-label 兜底，所以视觉隐藏是安全的） */
+  @media (max-width: 480px) {
+    .back-to-top {
+      right: 0.7rem;
+      bottom: 0.7rem;
+      padding: 0.6rem 0.7rem;
+    }
+    .back-to-top-text {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+    }
+  }
+</style>

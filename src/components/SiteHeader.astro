@@ -1,0 +1,37 @@
+---
+import { SITE } from '../site.config';
+
+const path = Astro.url.pathname;
+const links = [
+  { href: '/topic/', label: '专题' },
+  { href: '/browse/', label: '全部词条' },
+  { href: '/tools/', label: '小工具' },
+  { href: '/search/', label: '搜索' },
+  { href: '/about/', label: '关于与编辑规范' },
+];
+
+const isCurrent = (href: string) => path === href || path.startsWith(href.replace(/\/$/, '') + '/');
+
+// 品牌名的强调段由 site.config.ts 的 nameAccent 指定（例如「高性价比」用主色，其余用正文色）。
+// 之前这里写死了「第一个字符做强调」，结果渲染成「高」是黑的、其余是绿的，读起来像错别字。
+const accent = SITE.nameAccent;
+const hasAccent = Boolean(accent) && SITE.name.startsWith(accent);
+const rest = hasAccent ? SITE.name.slice(accent.length) : SITE.name;
+---
+
+<header class="site-header" data-pagefind-ignore>
+  <div class="wrap">
+    <a class="brand" href="/">
+      {hasAccent ? <span class="brand-accent">{accent}</span> : null}{rest}
+    </a>
+    <nav class="site-nav">
+      {
+        links.map((link) => (
+          <a href={link.href} aria-current={isCurrent(link.href) ? 'page' : undefined}>
+            {link.label}
+          </a>
+        ))
+      }
+    </nav>
+  </div>
+</header>

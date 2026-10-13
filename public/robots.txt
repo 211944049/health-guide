@@ -1,0 +1,15 @@
+# 让搜索引擎只抓该抓的页面。
+#
+# 为什么屏蔽 /search/：搜索页的内容由前端 JavaScript 生成，爬虫抓到的几乎是空页面；
+# 而且它能通过 ?q= 参数产生无数个 URL，属于典型的「无限参数空间」。
+# 让它被收录既没有价值，又会稀释站点的抓取预算。
+# （sitemap 里本来就已经过滤掉了它，这里再从抓取层面明确一次。）
+#
+# 为什么屏蔽 404：404 页不应被索引，否则搜索结果里可能出现它。
+
+User-agent: *
+Allow: /
+Disallow: /search/
+Disallow: /404.html
+
+Sitemap: https://costlifehealth.com/sitemap-index.xml

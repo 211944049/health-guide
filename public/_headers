@@ -1,0 +1,18 @@
+# Cloudflare Pages / Netlify 的响应头配置（Vercel 不读这个文件，会把它当普通静态文件）。
+# 注意：这里故意不加 Content-Security-Policy —— Pagefind 用 wasm、Worker 和 blob，
+# 写错 CSP 会让搜索整个失效，要加的话得先在真机上完整验一遍。
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY
+  Permissions-Policy: geolocation=(), camera=(), microphone=()
+
+# Astro 产出的资源都带内容哈希，可以长期缓存。
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Pagefind 里既有带哈希的分片，也有固定文件名的 pagefind.js / pagefind-ui.js，
+# 所以只给一小时缓存，避免更新后浏览器还拿旧 UI。
+/pagefind/*
+  Cache-Control: public, max-age=3600

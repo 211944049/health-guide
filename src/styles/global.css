@@ -1,0 +1,1566 @@
+:root {
+  --bg: #fbfaf7;
+  --bg-soft: #f2efe9;
+  --card: #ffffff;
+  --text: #1f2328;
+  --text-soft: #5c6470;
+  --line: #e3dfd7;
+  --brand: #1f7a5a;
+  --brand-soft: #e6f2ec;
+  --warn: #a3601a;
+  --warn-soft: #fbf0e0;
+  --radius: 12px;
+  --wrap: 1080px;
+  --wrap-read: 720px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #16181c;
+    --bg-soft: #1e2126;
+    --card: #1e2126;
+    --text: #e8e6e1;
+    --text-soft: #a3a9b3;
+    --line: #2f343b;
+    --brand: #63c39c;
+    --brand-soft: #1b2c26;
+    --warn: #e0b070;
+    --warn-soft: #2c2519;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', sans-serif;
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+a {
+  color: var(--brand);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.35;
+  margin: 0 0 0.6em;
+}
+
+h1 {
+  font-size: 1.75rem;
+}
+
+h2 {
+  font-size: 1.25rem;
+  margin-top: 2em;
+  padding-top: 0.2em;
+}
+
+h3 {
+  font-size: 1.05rem;
+  margin-top: 1.5em;
+}
+
+p,
+ul,
+ol,
+table,
+blockquote {
+  margin: 0 0 1em;
+}
+
+ul,
+ol {
+  padding-left: 1.4em;
+}
+
+li {
+  margin-bottom: 0.35em;
+}
+
+code {
+  background: var(--bg-soft);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  font-size: 0.9em;
+}
+
+blockquote {
+  margin-left: 0;
+  padding: 0.4em 1em;
+  border-left: 3px solid var(--line);
+  color: var(--text-soft);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.94rem;
+  display: block;
+  overflow-x: auto;
+}
+
+th,
+td {
+  border: 1px solid var(--line);
+  padding: 0.5em 0.7em;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  background: var(--bg-soft);
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--line);
+  margin: 2em 0;
+}
+
+.wrap {
+  width: 100%;
+  max-width: var(--wrap);
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* ---------- 页头 / 页脚 ---------- */
+
+.site-header {
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+}
+
+.site-header .wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.25rem;
+  padding-top: 0.85rem;
+  padding-bottom: 0.85rem;
+}
+
+.brand {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
+/* 只给强调段上主色；其余部分跟 .brand 一样是正文色。
+   用独立的类名而不是 .brand span，避免以后加别的 span 时被误染。 */
+.brand .brand-accent {
+  color: var(--brand);
+}
+
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.9rem;
+  margin-left: auto;
+  font-size: 0.94rem;
+}
+
+.site-nav a {
+  color: var(--text-soft);
+  padding: 0.15rem 0;
+}
+
+.site-nav a[aria-current='page'] {
+  color: var(--brand);
+  font-weight: 600;
+}
+
+.site-footer {
+  margin-top: 3.5rem;
+  border-top: 1px solid var(--line);
+  background: var(--bg-soft);
+  font-size: 0.88rem;
+  color: var(--text-soft);
+}
+
+.site-footer .wrap {
+  padding-top: 1.5rem;
+  padding-bottom: 2rem;
+}
+
+.site-footer p {
+  margin-bottom: 0.5em;
+}
+
+.site-footer .disclaimer {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* ---------- 通用组件 ---------- */
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+}
+
+.muted {
+  color: var(--text-soft);
+}
+
+.small {
+  font-size: 0.86rem;
+}
+
+.lead {
+  font-size: 1.08rem;
+  background: var(--brand-soft);
+  border-left: 3px solid var(--brand);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 0.8rem 1rem;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  font-size: 0.82rem;
+}
+
+.badge {
+  display: inline-block;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.1rem 0.6rem;
+  background: var(--bg-soft);
+  color: var(--text-soft);
+  white-space: nowrap;
+}
+
+.badge-evidence-A {
+  border-color: #2f8f5b;
+  background: #e7f5ec;
+  color: #1d6b41;
+}
+
+.badge-evidence-B {
+  border-color: #3a7bd5;
+  background: #e8f0fc;
+  color: #22568f;
+}
+
+.badge-evidence-C {
+  border-color: #b98a2c;
+  background: #fbf2e0;
+  color: #7d5a11;
+}
+
+.badge-evidence-D {
+  border-color: #b5573f;
+  background: #fbeae5;
+  color: #8a3a27;
+}
+
+@media (prefers-color-scheme: dark) {
+  .badge-evidence-A {
+    background: #17301f;
+    color: #8fd6ab;
+  }
+  .badge-evidence-B {
+    background: #17263a;
+    color: #9dc0ee;
+  }
+  .badge-evidence-C {
+    background: #33290f;
+    color: #e3c069;
+  }
+  .badge-evidence-D {
+    background: #33190f;
+    color: #e79a80;
+  }
+}
+
+.button {
+  display: inline-block;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 0.3rem 0.9rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.button:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+  text-decoration: none;
+}
+
+/* ---------- 首页 ---------- */
+
+.hero {
+  padding: 2.5rem 0 1.5rem;
+}
+
+.hero h1 {
+  font-size: 1.9rem;
+}
+
+.hero .tagline {
+  color: var(--text-soft);
+  max-width: 46em;
+}
+
+.search-form {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1.25rem 0 0.5rem;
+  max-width: 560px;
+}
+
+.search-form input {
+  flex: 1;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--text);
+  padding: 0.65rem 0.9rem;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.search-form input:focus {
+  outline: 2px solid var(--brand);
+  outline-offset: 1px;
+}
+
+.search-form button {
+  border: none;
+  border-radius: var(--radius);
+  background: var(--brand);
+  color: #fff;
+  padding: 0.65rem 1.2rem;
+  font-size: 1rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.grid {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.grid > li {
+  margin: 0;
+}
+
+.cat-card {
+  display: block;
+  height: 100%;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.9rem 1rem;
+  color: var(--text);
+}
+
+.cat-card:hover {
+  border-color: var(--brand);
+  text-decoration: none;
+}
+
+.cat-card .cat-title {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.cat-card .cat-desc {
+  color: var(--text-soft);
+  font-size: 0.88rem;
+  margin-top: 0.15rem;
+}
+
+.section {
+  margin-top: 2.5rem;
+}
+
+.section > h2 {
+  margin-top: 0;
+}
+
+.entry-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.entry-list > li {
+  margin: 0;
+}
+
+.entry-card {
+  display: block;
+  color: inherit;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.9rem 1.05rem;
+}
+
+.entry-card:hover {
+  border-color: var(--brand);
+  text-decoration: none;
+}
+
+.entry-card h3 {
+  margin: 0 0 0.3rem;
+  font-size: 1.05rem;
+}
+
+.entry-card p {
+  margin: 0 0 0.6rem;
+  color: var(--text-soft);
+  font-size: 0.92rem;
+}
+
+.entry-card .badges {
+  margin-top: 0.2rem;
+}
+
+/* ---------- 筛选 ---------- */
+
+/*
+  筛选区的折叠：窄屏（<700px）默认收起，给词条列表让出首屏；桌面端一直展开。
+  details 在 HTML 里就是收起的（这样窄屏首屏零闪烁），所以桌面端必须把内容强行显示出来：
+  · display 规则兼容用 display:none 隐藏内容的实现（Firefox、较老的 Chromium）
+  · ::details-content + content-visibility 规则兼容 Chromium 131+ / Safari 18.4+（UA 改用了 content-visibility）
+  两条都写着更保险；组件的脚本还会在桌面端补一次 open 作为最后兜底。
+*/
+@media (min-width: 700px) {
+  .filters-disclosure > summary {
+    display: none;
+  }
+
+  .filters-disclosure:not([open]) > .filters {
+    display: block;
+  }
+
+  .filters-disclosure:not([open])::details-content {
+    content-visibility: visible;
+  }
+}
+
+@media (max-width: 699px) {
+  .filters-disclosure > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--card);
+    padding: 0.6rem 0.9rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .filters-disclosure > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .filters-disclosure > summary::after {
+    content: '展开 ▾';
+    font-weight: 400;
+    font-size: 0.85rem;
+    color: var(--text-soft);
+  }
+
+  .filters-disclosure[open] > summary::after {
+    content: '收起 ▴';
+  }
+
+  .filters-disclosure[open] > summary {
+    margin-bottom: 0.6rem;
+  }
+
+  .filters-disclosure summary [data-filter-note] {
+    margin-left: 0.35rem;
+    font-weight: 400;
+    color: var(--brand);
+  }
+}
+
+.filters {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+  padding: 0.75rem 1rem 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.filter-group {
+  border: none;
+  margin: 0;
+  padding: 0.45rem 0;
+}
+
+.filter-group legend {
+  font-size: 0.82rem;
+  color: var(--text-soft);
+  padding: 0;
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.3rem;
+}
+
+.chip {
+  border: 1px solid var(--line);
+  background: var(--bg-soft);
+  color: var(--text-soft);
+  border-radius: 999px;
+  padding: 0.15rem 0.7rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.chip:hover {
+  border-color: var(--brand);
+}
+
+.chip[aria-pressed='true'] {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+
+/* 图例后面的「（共 N 个）」，弱化显示，不抢标题 */
+.filter-count {
+  font-weight: 400;
+  color: var(--text-soft);
+  font-size: 0.85em;
+}
+
+/*
+  「适用人群」这一组的折叠开关。
+  这一组有一百多个标签，全部铺开会占满整屏、把结果推得很远，所以默认只露前几个。
+  样式上刻意做得**低调**（像一条链接而不是按钮）：它是一个次要操作，
+  不该比「清空筛选」更显眼。
+*/
+.audience-more {
+  margin-top: 0.45rem;
+}
+
+.audience-more > summary {
+  display: inline-block;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--brand);
+  /* 去掉浏览器默认的三角标记，用自己的符号，视觉更整齐 */
+  list-style: none;
+}
+
+.audience-more > summary::-webkit-details-marker {
+  display: none;
+}
+
+.audience-more > summary::before {
+  content: '＋ ';
+}
+
+.audience-more[open] > summary::before {
+  content: '－ ';
+}
+
+.audience-more > summary:hover {
+  text-decoration: underline;
+}
+
+.audience-more > summary:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+/*
+  正文里指向参考来源的编号上标（见 src/pages/entry/[slug].astro 与 scripts/lib-sources.mjs）。
+  刻意做得**很轻**：它只是"这段话参考了哪几份"的提示，
+  不该抢正文的注意力（本项目上一轮因为筛选区太占地方被用户提过意见）。
+*/
+.ref-mark {
+  font-size: 0.7em;
+  line-height: 0;
+  color: var(--brand);
+  white-space: nowrap;
+  margin-left: 0.15em;
+}
+
+.sources ol {
+  padding-left: 1.4rem;
+  margin: 0.4rem 0 0.8rem;
+}
+
+.sources li {
+  margin-bottom: 0.35rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  /* 长 URL 不要撑破容器 */
+  overflow-wrap: anywhere;
+}
+
+/*
+  整行可点的参考来源。
+  做成"块级链接 + 轻微悬停底色"，让整行都是点击目标（比文字链好点），
+  但不要把整行染成链接蓝——参考列表里通常有好几条，全蓝会很吵。
+*/
+.sources li > a {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 6px;
+  padding: 0.15rem 0.35rem;
+  margin: -0.15rem -0.35rem;
+}
+
+/* 悬停时才给文字加下划线，作为"这里能点"的第二重提示 */
+.sources li > a:hover {
+  background: var(--bg-soft);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.sources li > a:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+.sources li:target {
+  background: var(--brand-soft);
+  border-radius: 4px;
+}
+
+.filter-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.88rem;
+  color: var(--text-soft);
+  padding-top: 0.35rem;
+}
+
+.empty-state {
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--text-soft);
+}
+
+/* ---------- 词条页 ---------- */
+
+.article-layout {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: minmax(0, 1fr);
+  padding-top: 1.75rem;
+}
+
+@media (min-width: 1000px) {
+  .article-layout {
+    grid-template-columns: minmax(0, var(--wrap-read)) 220px;
+    align-items: start;
+  }
+}
+
+.reading {
+  max-width: var(--wrap-read);
+}
+
+.toc {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+  padding: 0.85rem 1rem;
+  font-size: 0.88rem;
+  position: sticky;
+  top: 1rem;
+}
+
+.toc ol {
+  margin: 0;
+  padding-left: 1.1em;
+}
+
+.meta-panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.85rem 1rem;
+  margin: 1.25rem 0;
+}
+
+/*
+  相关词条。用和「全部词条」页一样的 .entry-card，视觉上承接正文之后。
+  跟正文之间加一条分隔线，让它看起来是「读完之后」的推荐而不是正文的一部分。
+*/
+.related {
+  margin: 2rem 0 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 2px solid var(--line);
+}
+
+.related > h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+}
+
+/* 相关词条卡片的摘要压到两行以内，避免这一块太长 */
+.related .entry-card p {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.meta-panel dl {
+  display: grid;
+  grid-template-columns: 6.5em minmax(0, 1fr);
+  gap: 0.35rem 0.75rem;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.meta-panel dt {
+  color: var(--text-soft);
+}
+
+.meta-panel dd {
+  margin: 0;
+}
+
+.sources {
+  font-size: 0.9rem;
+}
+
+.sources ol {
+  padding-left: 1.3em;
+}
+
+/* ---------- 基础 ---------- */
+
+/*
+  hidden 属性的兜底。
+  浏览器默认样式是 [hidden] { display: none }，但**作者样式里的 display 会盖过它**——
+  本站就踩过：.search-more 写了 display:block，导致「加载更多」按钮在
+  JS 设了 hidden=true 之后仍然显示、仍然可点、点了没反应（因为确实没有更多数据了）。
+  同一个规则踩的还有筛选侧栏和「清空」按钮。
+  这条 !important 兜底把 hidden 属性恢复成「一定不显示」，以后新元素也不会再踩。
+*/
+[hidden]:not([hidden='until-found']) {
+  display: none !important;
+}
+
+/* ---------- 搜索页 ---------- */
+
+/*
+  词条页里承载搜索卡片元数据的容器（见 entry/[slug].astro）。
+  它的文本会被 Pagefind 读走当 meta 值，但不该在页面上占位或显示。
+  用 1px 尺寸而不是 display:none —— 不显示的元素有可能被索引器整段跳过。
+*/
+.pf-meta {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/*
+  搜索页是自己渲染的（不用 pagefind-ui.js），所以这里全部用站点自己的类名。
+  为什么弃用默认 UI：它按页面结构把结果拆成一堆「子结果」，会把词条小标题和高亮片段
+  当成独立条目显示，看着是零散文本块而非卡片；它的 CSS 还会盖住站点样式。
+  现在结果卡片直接复用 .entry-card，和「全部词条」页长得一致。
+*/
+
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1rem 0 1.5rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  padding: 0.15rem 0.35rem 0.15rem 0.9rem;
+}
+
+.search-box:focus-within {
+  border-color: var(--brand);
+}
+
+.search-box .search-icon {
+  width: 1.05rem;
+  height: 1.05rem;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: var(--text-soft);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.search-box input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: 0.6rem 0;
+  font: inherit;
+  font-size: 1rem;
+  color: var(--text);
+}
+
+.search-box input:focus {
+  outline: none;
+}
+
+/* 去掉 type=search 自带的清除按钮，用自己那个（好统一外观） */
+.search-box input::-webkit-search-decoration,
+.search-box input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.search-box button {
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg-soft);
+  color: var(--text-soft);
+  padding: 0.3rem 0.8rem;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.search-box button:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.search-layout {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 1.75rem;
+  align-items: start;
+}
+
+.search-side h2 {
+  margin: 0 0 0.6rem;
+  font-size: 0.95rem;
+}
+
+.search-filter-group {
+  margin-bottom: 1.25rem;
+}
+
+.search-filter-group h3 {
+  margin: 0 0 0.45rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.search-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  margin-bottom: 0.35rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--text);
+  padding: 0.28rem 0.7rem;
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.search-chip:hover {
+  border-color: var(--brand);
+}
+
+.search-chip[aria-pressed='true'] {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-weight: 600;
+}
+
+.search-chip-count {
+  color: var(--text-soft);
+  font-size: 0.78rem;
+}
+
+.search-chip[aria-pressed='true'] .search-chip-count {
+  color: inherit;
+}
+
+.search-status {
+  margin: 0 0 0.9rem;
+  color: var(--text-soft);
+  font-size: 0.9rem;
+}
+
+.search-results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.search-excerpt {
+  margin: 0 0 0.6rem;
+  color: var(--text-soft);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+/* 关键词高亮：沿用主色，但用底色块更醒目 */
+.search-excerpt mark {
+  background: var(--brand-soft);
+  color: var(--brand);
+  border-radius: 3px;
+  padding: 0 0.15em;
+  font-weight: 600;
+}
+
+.search-more {
+  display: block;
+  width: 100%;
+  margin-top: 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--text);
+  padding: 0.6rem;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.search-more:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+@media (max-width: 720px) {
+  .search-layout {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  /* 手机上筛选横排、可横向滚动，避免占掉整个首屏 */
+  .search-side {
+    order: 2;
+  }
+
+  .search-side > div {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+  }
+
+  .search-filter-group {
+    margin-bottom: 0;
+    flex: 0 0 auto;
+  }
+
+  .search-filter-group > div {
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  .search-chip {
+    width: auto;
+    margin-bottom: 0;
+  }
+}
+
+/* ---------- 首页：从这里开始 ---------- */
+
+/*
+  入口路径卡片。为什么不用 .entry-card：
+  它承载的不是「一条词条」，而是「一组按顺序读的词条」，所以要能一眼看出顺序。
+*/
+.paths {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.9rem;
+}
+
+.path-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+}
+
+.path-card h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+
+.path-card > p {
+  margin: 0 0 0.7rem;
+  line-height: 1.6;
+}
+
+.path-steps {
+  margin: 0;
+  padding-left: 1.35em;
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.92rem;
+}
+
+.path-steps li::marker {
+  color: var(--text-soft);
+  font-size: 0.85em;
+}
+
+.path-steps a {
+  color: var(--text);
+}
+
+.path-steps a:hover {
+  color: var(--brand);
+}
+
+/* 首页「证据最强」用的精简卡片：不要摘要，标题和徽标贴紧一点 */
+.entry-list.compact .entry-card h3 {
+  margin-bottom: 0.4rem;
+}
+
+.entry-list.compact .entry-card {
+  padding: 0.7rem 1rem;
+}
+
+/* ---------- 小工具 ---------- */
+
+.tools-index {
+  list-style: none;
+  margin: 1.25rem 0;
+  padding: 0;
+}
+
+.tool-link {
+  display: block;
+  color: inherit;
+}
+
+.tool-link:hover {
+  border-color: var(--brand);
+  text-decoration: none;
+}
+
+.tool-link h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
+.tool-link p {
+  margin: 0;
+}
+
+/* 计算器 + 说明两栏；窄屏堆叠 */
+.tool-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 1rem;
+  margin: 1.25rem 0;
+  align-items: start;
+}
+
+@media (max-width: 720px) {
+  .tool-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tool-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+}
+
+.tool-card > h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+}
+
+.tool-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.7rem;
+}
+
+.tool-field {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.88rem;
+}
+
+.tool-field > span {
+  color: var(--text-soft);
+}
+
+.tool-field input,
+.tool-field select {
+  font: inherit;
+  font-size: 1rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.45rem 0.6rem;
+  width: 100%;
+}
+
+.tool-field input:focus,
+.tool-field select:focus {
+  outline: 2px solid var(--brand);
+  outline-offset: 1px;
+  border-color: var(--brand);
+}
+
+.tool-result {
+  margin-top: 1rem;
+  border-top: 1px dashed var(--line);
+  padding-top: 0.9rem;
+}
+
+.tool-metric {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.tool-metric-label {
+  color: var(--text-soft);
+  font-size: 0.88rem;
+  min-width: 6.5em;
+}
+
+.tool-metric-value {
+  font-size: 1.35rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.tool-verdict {
+  border-radius: 999px;
+  padding: 0.1rem 0.6rem;
+  font-size: 0.82rem;
+  border: 1px solid var(--line);
+}
+
+.tool-verdict-ok {
+  border-color: #2f8f5b;
+  background: #e7f5ec;
+  color: #1d6b41;
+}
+
+.tool-verdict-low {
+  border-color: #3a7bd5;
+  background: #e8f0fc;
+  color: #22568f;
+}
+
+.tool-verdict-warn {
+  border-color: #d59a3a;
+  background: #fbf2df;
+  color: #8a5a12;
+}
+
+.tool-verdict-bad {
+  border-color: #c86a6a;
+  background: #fbeaea;
+  color: #8f2f2f;
+}
+
+/* ---------- 久坐计时器 ---------- */
+
+.timer-stage {
+  display: flex;
+  justify-content: center;
+  margin: 1.25rem 0 1rem;
+}
+
+.timer-ring {
+  position: relative;
+  width: 190px;
+  height: 190px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.timer-ring-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg); /* 让进度从 12 点方向开始 */
+}
+
+.timer-ring-track,
+.timer-ring-progress {
+  fill: none;
+  stroke-width: 8;
+  stroke-linecap: round;
+}
+
+.timer-ring-track {
+  stroke: var(--line);
+}
+
+.timer-ring-progress {
+  stroke: var(--brand);
+  transition: stroke-dashoffset 0.5s linear;
+}
+
+/* 活动阶段换成暖色，一眼能和「坐着」区分开 */
+.timer-ring[data-phase='move'] .timer-ring-progress {
+  stroke: #d59a3a;
+}
+
+.timer-clock {
+  position: relative;
+  font-size: 2.6rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  line-height: 1.1;
+}
+
+.timer-phase {
+  position: relative;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+}
+
+.timer-controls {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.timer-btn {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--text);
+  padding: 0.45rem 1.4rem;
+  font: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.timer-btn:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.timer-btn-primary {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: #fff;
+}
+
+.timer-btn-primary:hover {
+  color: #fff;
+  opacity: 0.9;
+}
+
+.activity-menu {
+  margin: 0;
+  padding-left: 1.25em;
+  display: grid;
+  gap: 0.45rem;
+  line-height: 1.55;
+}
+
+/* ---------- 专题页 ---------- */
+
+.topic-index {
+  list-style: none;
+  margin: 1.25rem 0;
+  padding: 0;
+}
+
+.topic-meta {
+  border-left: 3px solid var(--brand);
+  padding-left: 0.9rem;
+  margin: 1rem 0;
+}
+
+.topic-meta p {
+  margin: 0.25rem 0;
+}
+
+.topic-intro {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.9rem 1.1rem;
+  line-height: 1.75;
+  margin: 1.25rem 0 0;
+}
+
+/* 步骤编号：让「顺序」这个核心信息一眼可见 */
+.topic-step h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.topic-step-num {
+  display: inline-grid;
+  place-items: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  flex: none;
+  border-radius: 50%;
+  background: var(--brand);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.topic-step > p.small {
+  margin-top: -0.35rem;
+  margin-bottom: 0.9rem;
+  line-height: 1.7;
+}
+
+/* ---------- 复核状态标记 ---------- */
+
+/*
+  词条页「下次复核」旁边的标记。
+  目的：让「来源是新是旧」这件事在页面上一眼可见——这是词条站可信度的一部分，
+  而不是只藏在文档里。
+*/
+.review-flag {
+  display: inline-block;
+  margin-left: 0.4rem;
+  border-radius: 999px;
+  padding: 0.05rem 0.5rem;
+  font-size: 0.75rem;
+  border: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+.review-flag-soon {
+  border-color: #d59a3a;
+  background: #fbf2df;
+  color: #8a5a12;
+}
+
+.review-flag-late {
+  border-color: #c86a6a;
+  background: #fbeaea;
+  color: #8f2f2f;
+}
+
+/* ---------- 饮水提醒工具 ---------- */
+
+.water-stage {
+  display: flex;
+  justify-content: center;
+  margin: 1.25rem 0 1rem;
+}
+
+.water-ring {
+  position: relative;
+  width: 190px;
+  height: 190px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.water-ring-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.water-ring-track,
+.water-ring-progress {
+  fill: none;
+  stroke-width: 8;
+  stroke-linecap: round;
+}
+
+.water-ring-track {
+  stroke: var(--line);
+}
+
+.water-ring-progress {
+  stroke: #3a7bd5;
+  transition: stroke-dashoffset 0.4s linear;
+}
+
+/* 达标后换成绿色，一眼能看出「今天够了」 */
+.water-ring[data-done='yes'] .water-ring-progress {
+  stroke: var(--brand);
+}
+
+.water-total {
+  position: relative;
+  font-size: 2.4rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  line-height: 1.1;
+}
+
+.water-goal-label {
+  position: relative;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+}
+
+.water-actions {
+  display: flex;
+  gap: 0.45rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.water-actions .timer-btn {
+  padding: 0.4rem 1rem;
+  font-size: 0.9rem;
+}
+
+/* ---------- 无障碍基础样式 ---------- */
+
+/*
+  仅供屏幕阅读器的文本。视觉上完全不可见，但**不能**用 display:none 或 visibility:hidden——
+  那会让屏幕阅读器也读不到，等于没写。用 1px + clip 的方式隐藏。
+  （SearchBox 之前用的是内联 style，只在那一个组件里生效；这里给全局定义，
+  这样任何地方都能用 class="sr-only"。check-a11y.mjs 依赖它存在。）
+*/
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/*
+  「跳到主内容」链接。
+  为什么需要：键盘和屏幕阅读器用户每打开一个页面，都要先逐个跳过导航里的链接
+  才能到正文。skip link 让他们一次跳到内容——这是成本最低、收益最直接的无障碍改进。
+
+  平时视觉上隐藏，**获得焦点时显示**。所以只能用「移出视口」的方式隐藏，
+  不能用 display:none（那样无法被聚焦，等于没写）。
+*/
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  background: var(--brand);
+  color: #fff;
+  padding: 0.6rem 1rem;
+  border-radius: 0 0 8px 0;
+  font-size: 0.95rem;
+}
+
+.skip-link:focus {
+  left: 0;
+  color: #fff;
+  text-decoration: none;
+}
+
+.notice {
+  border: 1px solid var(--warn);
+  background: var(--warn-soft);
+  color: var(--warn);
+  border-radius: var(--radius);
+  padding: 0.85rem 1rem;
+  font-size: 0.92rem;
+}
+
+.planned {
+  columns: 2;
+  column-gap: 2rem;
+  font-size: 0.92rem;
+}
+
+@media (max-width: 620px) {
+  .planned {
+    columns: 1;
+  }
+}
+
+.planned h3 {
+  margin-top: 1.2em;
+}
+
+.planned ul {
+  padding-left: 1.1em;
+}
+
+.planned li {
+  color: var(--text-soft);
+  break-inside: avoid;
+}

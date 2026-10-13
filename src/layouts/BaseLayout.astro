@@ -1,0 +1,137 @@
+---
+import '../styles/global.css';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import BackToTop from '../components/BackToTop.astro';
+import { SITE } from '../site.config';
+import { buildSchemaGraph, serializeSchema, type Crumb } from '../lib/schema';
+
+interface Props {
+  /** 页面标题，会拼在站名前面。 */
+  title?: string;
+  description?: string;
+  /**
+   * 是否让 Pagefind 收录这一页。
+   * 词条页传 true（只有 <main> 会被索引）；列表页/首页保持 false，避免搜索结果里
+   * 混进一堆导航和卡片说明。
+   */
+  indexable?: boolean;
+  /**
+   * 社交分享图（站内绝对路径，如 /og/entry/takeout-ordering.png）。
+   * 不传就用站点通用图 /og/site.png。
+   * 图由 scripts/make-og-images.py 生成。
+   */
+  image?: string;
+  /** 面包屑层级（不含首页）。用于结构化数据里的 BreadcrumbList。 */
+  crumbs?: Crumb[];
+  /** 词条页专用：结构化数据里需要这些字段。其他页面不传。 */
+  entrySchema?: {
+    title: string;
+    summary: string;
+    updated: Date;
+    category: string;
+    audience: string[];
+  };
+}
+
+const {
+  title,
+  description = SITE.description,
+  indexable = false,
+  image = '/og/site.png',
+  crumbs,
+  entrySchema,
+} = Astro.props;
+const pageTitle = title ? `${title} · ${SITE.name}` : `${SITE.name} · ${SITE.tagline}`;
+// canonical 只从 astro.config.mjs 的 site 取（可用 SITE_URL 环境变量覆盖）。
+// 不要在 site.config.ts 里再存一份域名 —— 那样改域名会漏掉一处。
+const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
+/*
+  og:image 必须是**绝对地址**，否则微信/Twitter 抓不到。
+  相对路径要拼上站点域名；Astro.site 为空（未设 site）时退回 undefined，
+  宁可不出图也不输出一个坏地址。
+*/
+const ogImage = Astro.site ? new URL(image, Astro.site).href : undefined;
+const mainAttrs = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ignore': '' };
+
+/*
+  结构化数据（JSON-LD）。只声明页面上真实存在的信息，不用编造的字段
+  （详见 src/lib/schema.ts 顶部的说明）。Astro.site 未设时跳过，避免输出半截地址。
+*/
+const schemaJson = Astro.site
+  ? serializeSchema(
+      buildSchemaGraph({
+        origin: Astro.site.href.replace(/\/$/, ''),
+        siteName: SITE.name,
+        siteDescription: SITE.description,
+        pageTitle,
+        pageDescription: description,
+        path: Astro.url.pathname,
+        isEntry: Boolean(entrySchema),
+        entry: entrySchema,
+        crumbs,
+      }),
+    )
+  : undefined;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    {canonical && <link rel="canonical" href={canonical} />}
+
+    {/*
+      社交分享标签。把链接发到微信/小红书时，页面显示的标题、摘要和图都来自这里；
+      没有它们就只能显示一个裸链接。og:image 必须是绝对地址。
+    */}
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    {canonical && <meta property="og:url" content={canonical} />}
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    {ogImage && <meta property="og:image:width" content="1200" />}
+    {ogImage && <meta property="og:image:height" content="630" />}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    {ogImage && <meta name="twitter:image" content={ogImage} />}
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    {/* RSS 订阅源。浏览器和阅读器靠这条 <link> 自动发现 feed。 */}
+    <link rel="alternate" type="application/rss+xml" title={`${SITE.name} 全部词条`} href="/rss.xml" />
+    {/*
+      站长平台的站点验证标签。留空时不输出任何东西（避免产生空的 meta 标签）。
+      验证码在 site.config.ts 的 verification 里维护，用 run.cmd verify:site 写入。
+    */}
+    {SITE.verification.google && <meta name="google-site-verification" content={SITE.verification.google} />}
+    {SITE.verification.bing && <meta name="msvalidate.01" content={SITE.verification.bing} />}
+    {/* 结构化数据：搜索结果里的标题、日期、层级信息从这里来。 */}
+    {schemaJson && <script type="application/ld+json" set:html={schemaJson} />}
+    <slot name="head" />
+  </head>
+  <body>
+    {/*
+      「跳到主内容」：键盘用户按第一次 Tab 就能看到它，回车即跳到 <main>。
+      目标 id="main-content" 就在下面的 <main> 上 —— `check-a11y.mjs` 会校验
+      这个链接存在、**且指向的目标 id 也真的存在**（否则它是个坏链接）。
+    */}
+    <a class="skip-link" href="#main-content">跳到主内容</a>
+    <SiteHeader />
+    <main class="wrap" id="main-content" {...mainAttrs}>
+      <slot />
+    </main>
+    <SiteFooter />
+    {/*
+      一键回到顶部。放在布局里，所以**每个页面都有**——
+      词条页通常很长，读者读到一半想回去换一条是很自然的动作。
+      组件内部自己处理"什么时候显示"，这里不需要传参。
+    */}
+    <BackToTop />
+  </body>
+</html>

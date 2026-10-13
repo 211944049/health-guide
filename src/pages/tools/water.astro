@@ -1,0 +1,407 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { entryHref, summaryHtml } from '../../lib/entries';
+import { CATEGORY_BY_LABEL, EVIDENCE_META, SITE } from '../../site.config';
+import { TOOLS } from '../../lib/tools';
+
+const tool = TOOLS.find((t) => t.slug === 'water')!;
+
+const entries = await getCollection('entries');
+const byId = new Map(entries.map((e) => [e.id, e]));
+const related = tool.related.map((id) => byId.get(id)).filter((e): e is NonNullable<typeof e> => Boolean(e));
+---
+
+<BaseLayout
+  title={tool.title}
+  description="按中国居民膳食指南的推荐量算出你的每日饮水目标，点一下记一杯，超过间隔没喝就提醒。记录只在浏览器本地，刷新即清空。"
+>
+  <section class="section">
+    <p class="small muted">
+      <a href="/tools/">← 全部小工具</a>
+    </p>
+
+    <h1>饮水提醒与记录</h1>
+
+    <p class="lead">
+      「一天八杯水」不是标准，而且杯子大小差三倍多，数杯子没用。
+      这个工具按<strong>中国居民膳食指南的推荐量</strong>算出你的每日目标（男性 1700 ml、女性 1500 ml），
+      用点按记账代替数杯子，并在你<strong>太久没喝</strong>时提醒。
+    </p>
+
+    <div class="tool-grid">
+      <div class="tool-card">
+        <h2>记录</h2>
+
+        <div class="tool-fields">
+          <label class="tool-field">
+            <span>每日目标</span>
+            <select id="goal-source">
+              <option value="1700">男 1700 ml（指南推荐）</option>
+              <option value="1500">女 1500 ml（指南推荐）</option>
+              <option value="custom">自己定…</option>
+            </select>
+          </label>
+          <label class="tool-field" id="custom-goal-field" hidden>
+            <span>自定义目标（ml）</span>
+            <input id="custom-goal" type="number" inputmode="numeric" min="500" max="5000" step="50" value="1700" />
+          </label>
+        </div>
+
+        <div class="water-stage">
+          <div id="water-ring" class="water-ring">
+            <svg class="water-ring-svg" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
+              <circle class="water-ring-track" cx="60" cy="60" r="54"></circle>
+              <circle id="water-progress" class="water-ring-progress" cx="60" cy="60" r="54"></circle>
+            </svg>
+            <span id="water-total" class="water-total">0</span>
+            <span id="water-goal-label" class="water-goal-label">/ 1700 ml</span>
+          </div>
+        </div>
+
+        <div class="water-actions">
+          <button type="button" class="timer-btn timer-btn-primary" data-add="200">+200 ml</button>
+          <button type="button" class="timer-btn" data-add="300">+300 ml</button>
+          <button type="button" class="timer-btn" data-add="500">+500 ml</button>
+          <button type="button" class="timer-btn" data-add="100">+100 ml</button>
+          <button type="button" class="timer-btn" id="water-undo">撤销</button>
+          <button type="button" class="timer-btn" id="water-reset">清零</button>
+        </div>
+
+        <p id="water-status" class="small muted" style="margin-top:0.75rem" role="status" aria-live="polite">
+          点上面的按钮记一杯。到量之后仍继续喝水没问题——目标是最低建议量，不是上限。
+        </p>
+      </div>
+
+      <div class="tool-card">
+        <h2>提醒</h2>
+
+        <div class="tool-fields">
+          <label class="tool-field">
+            <span>提醒间隔</span>
+            <select id="water-interval">
+              <option value="60">每 1 小时</option>
+              <option value="90" selected>每 1.5 小时</option>
+              <option value="120">每 2 小时</option>
+              <option value="0">不提醒</option>
+            </select>
+          </label>
+        </div>
+
+        <p id="water-next" class="small muted" style="margin-top:0.75rem">
+          设置间隔后，超过这么久没记录就会提醒你。
+        </p>
+
+        <p class="small muted" style="margin-bottom:0">
+          提醒方式：页面内提示，加上可选的通知权限。通知需要你在浏览器里允许，
+          被拒绝也不影响使用。
+        </p>
+
+        <h2 style="margin-top:1.2rem">别忘了这两件事</h2>
+        <ul class="small" style="margin-bottom:0">
+          <li>
+            <strong>看尿液颜色比看数字可靠。</strong> 透明浅黄说明够了；颜色变深说明喝少了。
+            空调房和冬天口渴感会变钝，这时候颜色更可信。
+          </li>
+          <li>
+            <strong>别在短时间内猛灌。</strong> 1 小时内喝下数升水有低钠血症风险。
+            出汗多、运动久的时候要同时补电解质。
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <article class="reading" style="margin-top:2rem">
+      <h2>这个数字是怎么来的</h2>
+      <p>
+        中国居民膳食指南给出的推荐<strong>饮水量</strong>（不含食物中的水）是：
+        成年男性 <strong>1700 ml</strong>、成年女性 <strong>1500 ml</strong>，
+        前提是<strong>温和气候、低活动量</strong>。
+      </p>
+      <p>
+        之所以不说「八杯」：八杯约 1600 ml，量级上碰巧接近，但它不是从研究里推出来的规定，
+        而且杯子大小差别很大——150 ml 的纸杯和 500 ml 的运动水壶差三倍多。
+      </p>
+
+      <h2>什么时候要往上加</h2>
+      <ul>
+        <li><strong>高温、大量出汗</strong>：运动或高温作业每小时可能额外需要 500–1000 ml。</li>
+        <li><strong>发烧、呕吐、腹泻</strong>：水分和电解质同时丢，光喝白水可能不够，需要口服补液盐。</li>
+        <li><strong>孕期、哺乳期</strong>：需要量高于普通成人，按产检医生的建议。</li>
+        <li><strong>高蛋白饮食、大量咖啡或浓茶</strong>：净失水增加，注意相应补水。</li>
+      </ul>
+
+      <h2>这些人<b>不能</b>照这个量喝</h2>
+      {/*
+        这个块带 data-safety-notice 锚点，不是装饰：
+        check-tool-water.mjs 会**先定位这个块、再检查块内内容**。
+        为什么需要锚点：第一版校验器是在整页上做关键词匹配，而页面别处有
+        「不能用含糖饮料代替白水」——那句话里的「不能」让「限液人群警告」的断言
+        即使在这个块被删掉之后也照样通过。这是反向验证抓出来的假阳性。
+        加了锚点，检查就必须命中这个块本身。
+      */}
+      <p class="notice" data-safety-notice="limit-fluid">
+        <strong>心力衰竭、慢性肾病、肝硬化腹水、正在透析，或医生交代过「限制液体入量」的人</strong>，
+        通常需要限制饮水，<strong>必须按医生给的具体数值执行，不要用本工具的推荐量</strong>。
+        照这个量喝可能加重水肿、心衰或电解质紊乱。
+        婴幼儿的情况也不同——6 个月以内纯母乳或配方奶喂养通常不需要额外喂水。
+      </p>
+
+      <h2>喝什么</h2>
+      <p>
+        首选<strong>白水</strong>（烧开的自来水、直饮水、桶装水、包装饮用水都可以），其次淡茶水。
+        <strong>不要用含糖饮料代替白水。</strong> 觉得没味道可以加一两片柠檬或几片薄荷叶。
+      </p>
+      <p>
+        水质方面要注意容器的清洁——饮水机长期不清洗、净水器滤芯超期不换，
+        都会让「干净的水」变成污染源。见<a href="/entry/water-dispenser-cleaning/">饮水机怎么清洁</a>。
+      </p>
+
+      <h2>怎么让它真的发生</h2>
+      <p>
+        靠意志力记住喝水通常失败，靠<strong>触发器</strong>才可靠：把喝水绑到已有动作上——
+        到工位、开会前、吃完药、上厕所回来，各喝几口。
+        桌上放一个 500 ml 的水壶（上午一壶、下午一壶）比数杯数好执行。
+      </p>
+      <p>
+        完整的做法、误区（比如「咖啡会把水抵消掉」「多喝水能排毒」）见
+        <a href="/entry/daily-water/">每天喝多少水</a>。
+      </p>
+
+      <p class="notice">
+        {SITE.disclaimer} 本工具只记录你自己输入的饮水量，不做任何医学判断。
+        有水肿、尿量异常、或已被诊断心/肾/肝疾病时，请以医生的液体管理方案为准。
+      </p>
+    </article>
+
+    <section class="related">
+      <h2>相关词条</h2>
+      <ul class="entry-list">
+        {
+          related.map((item) => {
+            const cat = CATEGORY_BY_LABEL.get(item.data.category);
+            const ev = EVIDENCE_META[item.data.evidence];
+            return (
+              <li>
+                <a class="entry-card" href={entryHref(item)}>
+                  <h3>{item.data.title}</h3>
+                  {summaryHtml(item) && <p set:html={summaryHtml(item)} />}
+                  <div class="badges">
+                    {cat && (
+                      <span class="badge">
+                        {cat.emoji} {cat.label}
+                      </span>
+                    )}
+                    <span class={`badge badge-evidence-${item.data.evidence}`} title={ev.desc}>
+                      {ev.short}
+                    </span>
+                  </div>
+                </a>
+              </li>
+            );
+          })
+        }
+      </ul>
+    </section>
+  </section>
+
+  <script is:inline>
+    /*
+      饮水提醒与记录。
+
+      ⚠️ 三个刻意的设计决定：
+
+      1. **不用 localStorage。** 记录只活在当前页面里。原因：正文明确写了
+         「心衰、肾病、透析患者要按医生的液体管理方案」，如果这个工具持久保存一个
+         「你每天该喝 1700 ml」的目标，对这类人就是有害的默认值。
+         不持久化可以让它保持"当下这次会话的记账本"的定位，而不是一份处方。
+
+      2. **目标是最低建议量，不是上限。** 指南给的是推荐饮水量，喝多了不会因此有罪感。
+         所以到量后提示语明确说「继续喝没问题」——避免制造"喝够就停"的误解。
+
+      3. **用时间戳算间隔，不用 setInterval 递减。** 与久坐计时器相同的理由：
+         浏览器会节流后台标签页的定时器。这里每次 tick 都按 Date.now() 比较。
+
+      ⚠️ 下面这些 <a href> 写在 script 里，check-site-links.mjs 看不到
+      （它会剥掉 script 块），所以由 scripts/check-tool-links.mjs 单独验证。
+      数值必须与 content/entries/daily-water.md 一致。
+    */
+    (function () {
+      var RING = 2 * Math.PI * 54;
+
+      var el = {
+        goalSource: document.getElementById('goal-source'),
+        customField: document.getElementById('custom-goal-field'),
+        customGoal: document.getElementById('custom-goal'),
+        total: document.getElementById('water-total'),
+        goalLabel: document.getElementById('water-goal-label'),
+        progress: document.getElementById('water-progress'),
+        status: document.getElementById('water-status'),
+        next: document.getElementById('water-next'),
+        undo: document.getElementById('water-undo'),
+        reset: document.getElementById('water-reset'),
+        interval: document.getElementById('water-interval'),
+      };
+      if (!el.total || !el.progress) return;
+
+      var goal = 1700;
+      var total = 0;
+      var history = []; // 每次记录的 ml，用于撤销
+      var lastDrinkAt = null;
+      var notified = false;
+
+      function goalValue() {
+        if (el.goalSource.value === 'custom') {
+          var v = Number(el.customGoal.value);
+          return Number.isFinite(v) && v >= 500 && v <= 5000 ? v : goal;
+        }
+        return Number(el.goalSource.value);
+      }
+
+      function fmtTime(d) {
+        return d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+      }
+
+      function paint() {
+        el.total.textContent = String(total);
+        el.goalLabel.textContent = '/ ' + goal + ' ml';
+
+        var pct = goal > 0 ? total / goal : 0;
+        el.progress.style.strokeDasharray = String(RING);
+        el.progress.style.strokeDashoffset = String(RING * (1 - Math.max(0, Math.min(1, pct))));
+
+        var ring = document.getElementById('water-ring');
+        if (ring) ring.setAttribute('data-done', pct >= 1 ? 'yes' : 'no');
+      }
+
+      function updateStatus(message) {
+        if (message) {
+          el.status.textContent = message;
+          return;
+        }
+        var left = goal - total;
+        if (left > 0) {
+          el.status.textContent =
+            '已记录 ' + total + ' ml，距离目标还差 ' + left + ' ml（约 ' + Math.ceil(left / 200) + ' 杯）。';
+        } else {
+          // 刻意说明「不是上限」——指南给的是推荐量，不是封顶
+          el.status.textContent =
+            '已达到 ' + goal + ' ml 的推荐量。继续喝没问题——目标是最低建议量，不是上限。';
+        }
+      }
+
+      function updateNextHint() {
+        var minutes = Number(el.interval.value);
+        if (!minutes) {
+          el.next.textContent = '已关闭提醒。';
+          return;
+        }
+        if (!lastDrinkAt) {
+          el.next.textContent = '还没有记录。开始记录后会按间隔提醒你。';
+          return;
+        }
+        var dueAt = new Date(lastDrinkAt + minutes * 60000);
+        var now = Date.now();
+        if (now >= dueAt.getTime()) {
+          el.next.textContent = '距上次记录已超过 ' + minutes + ' 分钟，该喝一杯了。';
+        } else {
+          el.next.textContent = '上次记录 ' + fmtTime(new Date(lastDrinkAt)) + '，下次提醒约 ' + fmtTime(dueAt) + '。';
+        }
+      }
+
+      function notify(title, body) {
+        if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+        try {
+          new Notification(title, { body: body, tag: 'water-reminder' });
+        } catch (e) {
+          /* 部分环境不支持，忽略 */
+        }
+      }
+
+      function add(amount) {
+        total += amount;
+        history.push(amount);
+        lastDrinkAt = Date.now();
+        notified = false;
+
+        // 首次记录时才申请通知权限（浏览器要求绑在用户手势上）
+        if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+          Notification.requestPermission().catch(function () {});
+        }
+
+        paint();
+        updateStatus();
+        updateNextHint();
+      }
+
+      function tick() {
+        updateNextHint();
+        var minutes = Number(el.interval.value);
+        if (!minutes || !lastDrinkAt) return;
+        if (Date.now() - lastDrinkAt >= minutes * 60000 && !notified) {
+          notified = true;
+          notify('该喝水了', '距上次记录已超过 ' + minutes + ' 分钟。');
+        }
+      }
+
+      // 记录按钮
+      var buttons = document.querySelectorAll('[data-add]');
+      for (var i = 0; i < buttons.length; i += 1) {
+        buttons[i].addEventListener('click', function () {
+          add(Number(this.getAttribute('data-add')));
+        });
+      }
+
+      el.undo.addEventListener('click', function () {
+        if (history.length === 0) {
+          updateStatus('没有可撤销的记录。');
+          return;
+        }
+        var last = history.pop();
+        total = Math.max(0, total - last);
+        paint();
+        updateStatus('已撤销上一次记录（-' + last + ' ml）。');
+      });
+
+      el.reset.addEventListener('click', function () {
+        total = 0;
+        history = [];
+        lastDrinkAt = null;
+        notified = false;
+        paint();
+        updateStatus('已清零。');
+        updateNextHint();
+      });
+
+      el.goalSource.addEventListener('change', function () {
+        var isCustom = el.goalSource.value === 'custom';
+        el.customField.hidden = !isCustom;
+        goal = goalValue();
+        paint();
+        updateStatus();
+      });
+
+      el.customGoal.addEventListener('input', function () {
+        goal = goalValue();
+        paint();
+        updateStatus();
+      });
+
+      el.interval.addEventListener('change', function () {
+        notified = false;
+        updateNextHint();
+      });
+
+      // 切回页面时立刻校正——后台标签页的定时器会被节流
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) tick();
+      });
+
+      goal = goalValue();
+      paint();
+      updateStatus();
+      updateNextHint();
+      setInterval(tick, 20000);
+    })();
+  </script>
+</BaseLayout>

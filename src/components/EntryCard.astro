@@ -1,0 +1,44 @@
+---
+import type { Entry } from '../lib/entries';
+import { audienceList, categoryHref, entryHref, formatDate, summaryHtml } from '../lib/entries';
+import { CATEGORY_BY_LABEL, EVIDENCE_META } from '../site.config';
+
+interface Props {
+  entry: Entry;
+}
+
+const { entry } = Astro.props;
+const category = CATEGORY_BY_LABEL.get(entry.data.category);
+const evidence = EVIDENCE_META[entry.data.evidence];
+/*
+  ⚠️ 用 summaryHtml + set:html，不用 summaryOf + {…}：
+  摘要有 92 条含 `**加粗**`，直接文本输出会显示字面星号（这个 bug 存在很久了）。
+  summaryHtml 已在内部转义 HTML，所以 set:html 是安全的。
+*/
+const summary = summaryHtml(entry);
+const audience = audienceList(entry);
+---
+
+<li
+  data-entry
+  data-category={category?.key ?? ''}
+  data-evidence={entry.data.evidence}
+  data-cost={entry.data.cost}
+  data-time={entry.data.time}
+  data-audience={audience.join('|')}
+>
+  <a class="entry-card" href={entryHref(entry)}>
+    <h3>{entry.data.title}</h3>
+    {summary && <p set:html={summary} />}
+    <div class="badges">
+      {category && <span class="badge">{category.emoji} {category.label}</span>}
+      <span class={`badge badge-evidence-${entry.data.evidence}`} title={evidence.desc}>
+        {evidence.short}
+      </span>
+      <span class="badge">成本 {entry.data.cost}</span>
+      <span class="badge">耗时 {entry.data.time}</span>
+      {entry.data.status === '简版' && <span class="badge">简版</span>}
+      <span class="badge">更新 {formatDate(entry.data.updated)}</span>
+    </div>
+  </a>
+</li>

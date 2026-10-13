@@ -1,0 +1,361 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../site.config';
+---
+
+<BaseLayout title="搜索" description={`在${SITE.name}里全文搜索衣食住行与健康管理词条。搜索在浏览器本地完成。`}>
+  <section class="section">
+    <h1>搜索词条</h1>
+    <p class="muted">
+      输入关键词，例如「外卖」「防晒」「久坐」。索引在浏览器本地加载，搜索词不会上传到任何服务器。
+      <span class="small">中文请至少输入两个字——单个汉字匹配范围太宽，会搜出一堆无关词条。</span>
+    </p>
+
+    <div class="search-box">
+      <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <circle cx="11" cy="11" r="7"></circle>
+        <line x1="16.2" y1="16.2" x2="21" y2="21"></line>
+      </svg>
+      <input
+        id="search-input"
+        type="search"
+        autocomplete="off"
+        placeholder="搜索词条…"
+        aria-label="搜索词条"
+      />
+      <button id="search-clear" type="button" hidden>清空</button>
+    </div>
+
+    <div class="search-layout">
+      <aside id="search-side" class="search-side" hidden>
+        <h2>筛选</h2>
+        <div id="search-filters"></div>
+      </aside>
+
+      <div class="search-main">
+        <p id="search-status" class="search-status" role="status" aria-live="polite"></p>
+        <ol id="search-results" class="search-results"></ol>
+        <button id="search-more" class="search-more" type="button" hidden>加载更多结果</button>
+      </div>
+    </div>
+
+    <div id="search-fallback" class="notice" hidden>
+      <p style="margin:0">
+        <strong>搜索索引还没生成。</strong>
+        开发模式（<code>astro dev</code>）下没有索引文件，请先跑一次 <code>pnpm build</code>，再用 <code>pnpm preview</code> 打开。
+      </p>
+    </div>
+
+    <p class="small muted" style="margin-top:1.5rem">
+      找不到想要的答案？可以先按<a href="/browse/">分类和证据等级筛</a>，或者去<a href="/about/">关于页</a>提选题。
+    </p>
+  </section>
+
+  <script is:inline>
+    /*
+      搜索页是**自己渲染**的，不用 pagefind-ui.js。
+      为什么不用默认 UI：它把结果按页面结构拆成一堆「子结果」，会把词条的小标题
+      （适用人群 / 健康原理 …）和高亮片段当成独立条目显示，看起来是零散文本块而不是卡片；
+      而且它的 CSS 还会盖住站点的样式（之前那行重复的 "Evidence: …" 就是这么来的）。
+      改成直接用 Pagefind 的 JS API 取数据、按站点的 .entry-card 样式渲染，外观就和「全部词条」一致了。
+
+      ⚠️ 两个必须记住的点：
+      1. 不要设置 baseUrl！它是「页面」的基路径（默认由 bundlePath 推导成 "/"），
+         结果地址是 `${baseUrl}/${rawUrl}` 拼出来的。设成 '/pagefind/' 会让所有结果 404。
+      2. 摘要用 result.data() 返回的 excerpt（片段本身就带 <mark> 高亮），
+         不能拿 meta.summary 替代——否则搜索结果里看不到关键词命中位置。
+    */
+    (function () {
+      var pf = null;
+      var allResults = [];
+      var filters = Object.create(null);
+      var active = Object.create(null);
+      var shown = 0;
+      var PAGE = 8;
+
+      var UI = {
+        input: document.getElementById('search-input'),
+        clear: document.getElementById('search-clear'),
+        side: document.getElementById('search-side'),
+        filters: document.getElementById('search-filters'),
+        status: document.getElementById('search-status'),
+        list: document.getElementById('search-results'),
+        more: document.getElementById('search-more'),
+        fallback: document.getElementById('search-fallback'),
+      };
+
+      function esc(value) {
+        return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+
+      function evidenceClass(level) {
+        var first = String(level || '').trim().charAt(0);
+        return /^[ABCD]$/.test(first) ? ' badge-evidence-' + first : '';
+      }
+
+      function badge(text, cls) {
+        return '<span class="badge' + (cls || '') + '">' + esc(text) + '</span>';
+      }
+
+      function cardOf(data) {
+        var meta = data.meta || {};
+        var badges =
+          badge(meta.evidence, evidenceClass(meta.evidence)) +
+          (meta.category ? badge(meta.category) : '') +
+          (meta.cost ? badge('成本 ' + meta.cost) : '') +
+          (meta.time ? badge('耗时 ' + meta.time) : '');
+
+        return (
+          '<li><a class="entry-card" href="' + esc(data.url) + '">' +
+          '<h3>' + esc(data.meta && data.meta.title ? data.meta.title : data.url) + '</h3>' +
+          '<p class="search-excerpt">' + (data.excerpt || '') + '</p>' +
+          '<div class="badges">' + badges + '</div>' +
+          '</a></li>'
+        );
+      }
+
+      /*
+        客户端重排：把「查询词完整出现在标题里」的结果提到最前。
+
+        为什么需要（2026-10 用户两次反馈「搜出无关内容」）：
+        Pagefind 对中文按**单字**切分，一个词的得分可能主要由其中**一个字**贡献。
+        实测「外卖」的两种情况——按完整词命中时，标题匹配那条得分 25095、其余约 512，
+        排序正确；但如果用户输入里带了空格（「外 卖」），Pagefind 会拆成两次查询，
+        变成"匹配到「外」就算命中"，于是 37 条无关结果（耳塞、噪音…）全被拉进来。
+        单字拦截挡不住这种情况（词长是 3），所以这里再补一层：
+        **用完整的查询词重新排序**，让真正相关的浮上去。
+
+        排序是稳定排序，所以同分结果保持 Pagefind 原来的相对顺序，不会打乱它已有的判断。
+      */
+      function rerank(list, term) {
+        /*
+          ⚠️ 查询词也要先去掉空白（2026-10-12）。
+          渲染时的 term 来自输入框，可能带空格。搜索那一步已经做了归一化，
+          但重排这里如果还用带空格的形式，indexOf 就永远匹配不上任何东西
+          （「外 卖」在标题里当然找不到），于是所有结果同分、重排等于没做。
+        */
+        var q = String(term || '').replace(/[\s\u3000]+/g, '').toLowerCase();
+        if (!q || q.length < 2) return list;
+
+        /**
+         * 判断 text 里是否出现「查询字的连续片段**或近似连续**的片段」。
+         *
+         * 为什么不能只用 indexOf：Pagefind 对中文按单字切分，
+         * 所以「外卖」会拉进「额**外**添加…**卖**点」这类**两个字都有、但挨不着**的词条。
+         * 实测就是它把「洗脸巾」排到了「外卖怎么点更健康」前面。
+         *
+         * 规则：
+         *   · q 直接出现 → 命中（最常见）
+         *   · 否则，q 的所有字必须按顺序出现，且**首尾跨度不超过 q.length + 2**
+         *     —— 允许中文里插一个助词（如「外卖的」），但不允许散落在整段文字里
+         */
+        function hasToken(text) {
+          if (text.indexOf(q) !== -1) return true;
+          if (q.length < 2) return false;
+          var chars = q.split('');
+          var from = 0;
+          var first = -1;
+          var last = -1;
+          for (var i = 0; i < chars.length; i += 1) {
+            var at = text.indexOf(chars[i], from);
+            if (at === -1) return false;
+            if (first === -1) first = at;
+            last = at;
+            from = at + 1;
+          }
+          return last - first <= q.length + 2;
+        }
+
+        function score(d) {
+          var title = String((d.meta || {}).title || '').toLowerCase();
+          var plain = String(d.plain_excerpt || d.excerpt || '').replace(/<[^>]+>/g, '').toLowerCase();
+          if (hasToken(title)) return 3; // 标题里有完整查询词 —— 最相关
+          if (hasToken(plain)) return 1; // 摘要里有
+          return 0; // 只有字级命中
+        }
+        return list
+          .map(function (d, i) { return { d: d, s: score(d), i: i }; })
+          .sort(function (a, b) { return b.s - a.s || a.i - b.i; })
+          .map(function (x) { return x.d; });
+      }
+
+      function render() {
+        var term = UI.input.value.trim();
+        var list = rerank(
+          allResults.filter(function (d) {
+            for (var key in active) {
+              if (active[key] && String((d.meta || {})[key]) !== active[key]) return false;
+            }
+            return true;
+          }),
+          term,
+        );
+
+        if (!list.length) {
+          UI.list.innerHTML = '';
+          UI.status.textContent = '没有找到匹配的词条。';
+          UI.more.hidden = true;
+          return;
+        }
+
+        var slice = list.slice(0, shown);
+        UI.list.innerHTML = slice.map(cardOf).join('');
+        var query = UI.input.value.trim();
+        UI.status.textContent = query
+          ? '找到 ' + list.length + ' 条结果：' + query
+          : '共 ' + list.length + ' 条词条';
+        UI.more.hidden = shown >= list.length;
+        // 按钮只写「加载更多」，剩余条数统一由上面的状态行表达，
+        // 避免按钮上的数字和实际渲染的卡片数不一致（曾经出现过「显示 5 条却说还有 5 条」）。
+        UI.more.textContent = '加载更多';
+      }
+
+      function buildFilters() {
+        UI.filters.innerHTML = '';
+        var keys = Object.keys(filters);
+        if (!keys.length) {
+          UI.side.hidden = true;
+          return;
+        }
+        UI.side.hidden = false;
+
+        keys.forEach(function (key) {
+          var values = Object.keys(filters[key]).sort();
+          var group = document.createElement('div');
+          group.className = 'search-filter-group';
+          var heading = document.createElement('h3');
+          heading.textContent = key === 'evidence' ? '证据等级' : key;
+          group.appendChild(heading);
+
+          values.forEach(function (value) {
+            var row = document.createElement('button');
+            row.type = 'button';
+            row.className = 'search-chip';
+            row.setAttribute('aria-pressed', 'false');
+            row.innerHTML = esc(value) + ' <span class="search-chip-count">' + filters[key][value] + '</span>';
+            row.addEventListener('click', function () {
+              if (active[key] === value) {
+                delete active[key];
+                row.setAttribute('aria-pressed', 'false');
+              } else {
+                active[key] = value;
+                row.setAttribute('aria-pressed', 'true');
+              }
+              shown = PAGE;
+              render();
+            });
+            group.appendChild(row);
+          });
+
+          UI.filters.appendChild(group);
+        });
+      }
+
+      function search(term) {
+        UI.clear.hidden = !term;
+
+        /*
+          ⚠️ 先把查询词里的空白去掉（2026-10-12 修）。
+
+          为什么必须这样做：Pagefind 对中文按**单字**切分。输入「外 卖」（中间有空格）时，
+          它把它当成**两个独立的单字查询**，做的是「含外 或 含卖」的匹配——
+          结果集里全是「额外添加」「卖点」「外面」这类无关词条，
+          **真正的「外卖怎么点更健康」根本不在结果里**。
+
+          实测：
+            查询「外 卖」→ 4 条结果，标题含「外卖」的 0 条
+            查询「外卖」  → 18 条结果，第 1 条就是「外卖怎么点更健康」
+
+          之前我只在**重排**里做了归一化（用去空格的形式算分），
+          但搜索本身用的是带空格的原文——**重排救不了一个不含正确答案的结果集**。
+          所以归一化必须放在搜索之前。
+        */
+        var normalized = String(term || '').replace(/[\s\u3000]+/g, '');
+
+        /*
+          中文单字搜索必须拦掉。
+          为什么：Pagefind 对中文按**单字**切分，所以「外卖」是拿「外」和「卖」两次查询再合并。
+          只输入一个字时（比如刚打完「外」），会命中所有含这个字的词条——
+          实测「外」返回 37 条、「久」28 条、「坐」14 条，绝大多数与用户意图无关。
+          这不是 bug 而是分词方式决定的，所以这里改成「等用户打完再搜」：
+          单字（或纯空白）不触发搜索，而是提示继续输入。
+          英文/数字单词正常搜（它们不是单字切分）。
+        */
+        if (normalized.length === 1 && /[\u4e00-\u9fff]/.test(normalized)) {
+          allResults = [];
+          filters = Object.create(null);
+          active = Object.create(null);
+          UI.list.innerHTML = '';
+          UI.side.hidden = true;
+          UI.more.hidden = true;
+          UI.status.textContent = '再输入一个字，就能开始搜索（单个汉字会匹配到太多无关词条）';
+          return Promise.resolve();
+        }
+
+        return pf.search(normalized || null, { resultCount: 60 }).then(function (res) {
+          return Promise.all(res.results.map(function (r) { return r.data(); }));
+        }).then(function (pages) {
+          allResults = pages;
+          filters = Object.create(null);
+          active = Object.create(null);
+          pages.forEach(function (p) {
+            var meta = p.meta || {};
+            ['evidence', 'category', 'cost', 'time'].forEach(function (key) {
+              if (!meta[key]) return;
+              filters[key] = filters[key] || Object.create(null);
+              filters[key][meta[key]] = (filters[key][meta[key]] || 0) + 1;
+            });
+          });
+          shown = PAGE;
+          buildFilters();
+          render();
+        });
+      }
+
+      function init() {
+        import('/pagefind/pagefind.js')
+          .then(function (mod) {
+            pf = mod.default || mod;
+            return pf.options ? pf.options({ excerptLength: 24 }) : null;
+          })
+          .then(function () {
+            var query = new URLSearchParams(window.location.search).get('q') || '';
+            UI.input.value = query;
+            return search(query);
+          })
+          .catch(function () {
+            if (UI.fallback) UI.fallback.hidden = false;
+          });
+
+        var timer = null;
+        UI.input.addEventListener('input', function () {
+          UI.clear.hidden = !UI.input.value;
+          clearTimeout(timer);
+          // 200ms 防抖：中文输入时不要每敲一个字就查一次
+          // （单字查询在 Pagefind 里会命中大量无关词条，见 search() 里的说明）
+          timer = setTimeout(function () { search(UI.input.value.trim()); }, 200);
+        });
+
+        UI.clear.addEventListener('click', function () {
+          UI.input.value = '';
+          UI.clear.hidden = true;
+          UI.input.focus();
+          search('');
+        });
+
+        UI.more.addEventListener('click', function () {
+          shown += PAGE;
+          render();
+        });
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    })();
+  </script>
+</BaseLayout>

@@ -1,0 +1,294 @@
+---
+import type { Entry } from '../lib/entries';
+import { audienceList } from '../lib/entries';
+import EntryCard from './EntryCard.astro';
+import { CATEGORIES, COST_LEVELS, EVIDENCE_META, EVIDENCE_KEYS, TIME_LEVELS } from '../site.config';
+import type { CategoryMeta } from '../site.config';
+
+interface Props {
+  entries: Entry[];
+  /** 在分类页里锁死分类，不再显示分类筛选。 */
+  lockedCategory?: CategoryMeta | null;
+}
+
+const { entries, lockedCategory = null } = Astro.props;
+
+const audiences = [...new Set(entries.flatMap((entry) => audienceList(entry)))].sort((a, b) =>
+  a.localeCompare(b, 'zh-Hans-CN'),
+);
+
+/**
+ * 「适用人群」默认露出多少个标签。
+ *
+ * 为什么是 8：这一组有一百多个标签，铺满会占掉一整屏、把结果推得很远。
+ * 8 个大约两行，既让人看出"这里可以按人群筛"，又不至于喧宾夺主。
+ * 具体数字不敏感，但**必须小于总数**，否则折叠按钮没有意义
+ * （check-browser-filters.mjs 会校验这个前提）。
+ */
+const AUDIENCE_PREVIEW_COUNT = 8;
+
+const categoriesWithEntries = CATEGORIES.filter((category) =>
+  entries.some((entry) => entry.data.category === category.label),
+);
+---
+
+<div data-filter-root>
+  <!--
+    手机上筛选区会占满整个首屏，读者要滑很久才看到第一个词条，所以窄屏默认收起。
+    做法是 HTML 里就**不带 open**（这样首屏零闪烁），桌面端由 CSS 强制展开、再由 JS 兜底。
+    不要改成"默认 open 再让脚本收起"：Astro 会把内联脚本挪到组件输出末尾（在所有词条卡片之后），
+    那样手机上会先渲染出展开的筛选区再折叠，闪烁很明显。
+  -->
+  <details class="filters-disclosure">
+    <summary><span>筛选条件<span data-filter-note></span></span></summary>
+
+    <div class="filters">
+      {
+        !lockedCategory && (
+          <fieldset class="filter-group" data-group="category">
+            <legend>分类</legend>
+            <div class="chip-row">
+              {categoriesWithEntries.map((category) => (
+                <button class="chip" type="button" data-value={category.key} aria-pressed="false">
+                  {category.emoji} {category.label}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+        )
+      }
+
+      <fieldset class="filter-group" data-group="evidence">
+        <legend>证据等级</legend>
+        <div class="chip-row">
+          {
+            EVIDENCE_KEYS.map((key) => (
+              <button
+                class="chip"
+                type="button"
+                data-value={key}
+                aria-pressed="false"
+                title={EVIDENCE_META[key].desc}
+              >
+                {EVIDENCE_META[key].short}
+              </button>
+            ))
+          }
+        </div>
+      </fieldset>
+
+      <fieldset class="filter-group" data-group="cost">
+        <legend>成本</legend>
+        <div class="chip-row">
+          {
+            COST_LEVELS.map((level) => (
+              <button class="chip" type="button" data-value={level} aria-pressed="false">
+                {level}
+              </button>
+            ))
+          }
+        </div>
+      </fieldset>
+
+      <fieldset class="filter-group" data-group="time">
+        <legend>照着做一次要多久</legend>
+        <div class="chip-row">
+          {
+            TIME_LEVELS.map((level) => (
+              <button class="chip" type="button" data-value={level} aria-pressed="false">
+                {level}
+              </button>
+            ))
+          }
+        </div>
+      </fieldset>
+
+      {
+        audiences.length > 0 && (
+          <fieldset class="filter-group" data-group="audience">
+            <legend>
+              适用人群<span class="filter-count">（共 {audiences.length} 个）</span>
+            </legend>
+            {/*
+              适用人群有 100 多个标签，全部铺开会占满整屏、把结果推得很远
+              （2026-10-12 用户反馈「分类很细，太多了，建议可以收纳」）。
+              所以这里**单独**给这一组加折叠：默认只露前 8 个 + 「展开全部」。
+
+              为什么用 <details> 而不是自己写 JS 折叠：
+              · 原生可用，没有 JS 也能展开（其他组本来就这样做）；
+              · 键盘和屏幕阅读器行为由浏览器保证；
+              · 与上面那个 .filters-disclosure 是同一套模式，读者不需要学第二遍。
+
+              ⚠️ 两个必须守住的点（check-browser-filters.mjs 会查）：
+                1. **已选中的标签不能藏在收起状态里** —— 读者点了却看不到自己选了什么，
+                   会以为没生效。所以 JS 里会把选中项显式显示出来（见下方脚本）。
+                2. 展开/收起按钮的**可读文本**要随状态变化，否则屏幕阅读器不知道会展开还是收起。
+            */}
+            <div class="chip-row" data-audience-row>
+              {audiences.map((value, index) => (
+                <button
+                  class="chip"
+                  type="button"
+                  data-value={value}
+                  data-audience-index={index}
+                  aria-pressed="false"
+                >
+                  {value}
+                </button>
+              ))}
+            </div>
+
+            {audiences.length > AUDIENCE_PREVIEW_COUNT && (
+              <details class="audience-more" data-audience-more data-preview-count={AUDIENCE_PREVIEW_COUNT}>
+                <summary data-audience-toggle>
+                  <span data-audience-toggle-text>展开全部 {audiences.length} 个</span>
+                </summary>
+              </details>
+            )}
+          </fieldset>
+        )
+      }
+    </div>
+  </details>
+
+  <!-- 计数和「清空筛选」放在折叠区外面，手机收起时也能看到当前结果数 -->
+  <div class="filter-status">
+    <span data-filter-status>共 {entries.length} 个词条</span>
+    <button class="button" type="button" data-clear>清空筛选</button>
+    <span class="small">同一组内多选是「或」，不同组之间是「且」。</span>
+  </div>
+
+  <ul class="entry-list">
+    {entries.map((entry) => <EntryCard entry={entry} />)}
+  </ul>
+
+  <div class="empty-state" data-empty hidden>
+    <p>当前筛选条件下没有词条。</p>
+    <p class="small">换几个条件试试，或者去<a href="/browse/">全部词条</a>看看。</p>
+  </div>
+</div>
+
+<script>
+  const root = document.querySelector('[data-filter-root]');
+
+  if (root) {
+    const cards = Array.from(root.querySelectorAll<HTMLElement>('[data-entry]'));
+    const groups = Array.from(root.querySelectorAll<HTMLElement>('[data-group]'));
+    const status = root.querySelector<HTMLElement>('[data-filter-status]');
+    const note = root.querySelector<HTMLElement>('[data-filter-note]');
+    const empty = root.querySelector<HTMLElement>('[data-empty]');
+    const clear = root.querySelector<HTMLElement>('[data-clear]');
+
+    // 折叠状态的兜底同步：HTML 默认收起（窄屏零闪烁），桌面端在这里展开。
+    // CSS 里也有强制显示内容的规则；这里再兜一层，防止个别浏览器不支持那种写法时桌面端看不到筛选。
+    const disclosure = root.querySelector<HTMLDetailsElement>('.filters-disclosure');
+    if (disclosure) {
+      const wide = window.matchMedia('(min-width: 700px)');
+      const syncDisclosure = () => {
+        if (wide.matches) disclosure.setAttribute('open', '');
+        else disclosure.removeAttribute('open');
+      };
+      syncDisclosure();
+      wide.addEventListener('change', syncDisclosure);
+    }
+
+    /*
+      「适用人群」这一组自己的折叠。
+      这一组有一百多个标签，全部铺开会占满整屏（用户反馈过），
+      所以默认只露前 AUDIENCE_PREVIEW_COUNT 个（用 data-audience-index 标记），
+      其余靠 <details> 展开。
+
+      ⚠️ 核心规则：**已选中的标签在收起时也必须可见**。
+      否则读者点了「糖尿病患者」但看不到它被点亮，会以为没生效，
+      然后再点一次——变成反复开关，体验很差。
+      所以这里的判断是「index < 预览数 **或** 已选中」。
+    */
+    const audienceMore = root.querySelector<HTMLDetailsElement>('[data-audience-more]');
+    const audienceChips = Array.from(root.querySelectorAll<HTMLElement>('[data-audience-index]'));
+    const audienceToggleText = root.querySelector<HTMLElement>('[data-audience-toggle-text]');
+    const audienceToggle = root.querySelector<HTMLElement>('[data-audience-toggle]');
+    const PREVIEW = Number(audienceMore?.dataset.previewCount ?? 8);
+
+    const syncAudience = () => {
+      if (!audienceMore) return;
+      const expanded = audienceMore.hasAttribute('open');
+      for (const chip of audienceChips) {
+        const index = Number(chip.dataset.audienceIndex ?? '0');
+        const selected = chip.getAttribute('aria-pressed') === 'true';
+        chip.hidden = !expanded && index >= PREVIEW && !selected;
+      }
+      if (audienceToggleText && audienceToggle) {
+        const total = audienceChips.length;
+        audienceToggleText.textContent = expanded ? '收起' : `展开全部 ${total} 个`;
+        // 让屏幕阅读器知道这个按钮会展开还是收起（可读文本必须随状态变化）
+        audienceToggle.setAttribute('aria-expanded', String(expanded));
+      }
+    };
+
+    if (audienceMore) {
+      audienceMore.addEventListener('toggle', syncAudience);
+      syncAudience();
+    }
+
+    const apply = () => {
+      const active = new Map<string, Set<string>>();
+      for (const group of groups) {
+        const name = group.dataset.group;
+        if (!name) continue;
+        const values = new Set(
+          Array.from(group.querySelectorAll<HTMLElement>('.chip[aria-pressed="true"]')).map(
+            (chip) => chip.dataset.value ?? '',
+          ),
+        );
+        if (values.size > 0) active.set(name, values);
+      }
+
+      let shown = 0;
+      for (const card of cards) {
+        let visible = true;
+        for (const [name, values] of active) {
+          const cardValues = new Set((card.dataset[name] ?? '').split('|').filter(Boolean));
+          const matched = Array.from(values).some((value) => cardValues.has(value));
+          if (!matched) {
+            visible = false;
+            break;
+          }
+        }
+        card.hidden = !visible;
+        if (visible) shown += 1;
+      }
+
+      if (status) status.textContent = `共 ${shown} / ${cards.length} 个词条`;
+      if (empty) empty.hidden = shown !== 0;
+
+      /*
+        筛选状态变了，所以要把「已选中的适用人群标签要不要露出来」重算一遍。
+        漏掉这一行的话：读者在收起状态下点了一个隐藏标签（不可能，因为隐藏的看不见）——
+        但通过「清空筛选」或浏览器前进后退恢复状态时会出现不一致。
+        统一在这里同步，是最省心的做法。
+      */
+      syncAudience();
+
+      // 收起状态下让 summary 也能反映"选了几项"，不用展开就知道筛选有没有生效
+      if (note) {
+        const count = Array.from(active.values()).reduce((total, values) => total + values.size, 0);
+        note.textContent = count > 0 ? `（已选 ${count} 项）` : '';
+      }
+    };
+
+    root.addEventListener('click', (event) => {
+      const target = event.target as HTMLElement;
+      if (target.closest('[data-clear]')) {
+        for (const chip of root.querySelectorAll<HTMLElement>('.chip[aria-pressed="true"]')) {
+          chip.setAttribute('aria-pressed', 'false');
+        }
+        apply();
+        return;
+      }
+      const chip = target.closest<HTMLElement>('.chip');
+      if (!chip) return;
+      chip.setAttribute('aria-pressed', chip.getAttribute('aria-pressed') === 'true' ? 'false' : 'true');
+      apply();
+    });
+  }
+</script>

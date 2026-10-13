@@ -1,0 +1,36 @@
+# pnpm 11 把 pnpm 专有配置从 .npmrc 迁到了这个文件，写错位置会被静默忽略。
+# （之前放在 .npmrc 里的 node-linker 就是这么被忽略的。）
+
+# nodeLinker: hoisted —— 默认的 isolated 布局会创建 junction，
+# 而本机 Node 不把 junction 解析回真实路径，导致 astro 找不到 yargs-parser、
+# pagefind 找不到平台二进制。hoisted 布局落成真实目录，绕开这个问题。
+nodeLinker: hoisted
+
+# 依赖与缓存放在项目内的相对路径下：换机器、上 CI 都不用改。
+# 用相对路径而不是 C:\... 绝对路径，是因为绝对路径在 Linux 上会被当成一个奇怪的文件名。
+# 这几个目录已加到 .gitignore。
+storeDir: .pnpm-store
+cacheDir: .pnpm-cache
+stateDir: .pnpm-state
+
+# pnpm 默认会在 `pnpm run` 之前检查依赖状态、必要时自动 install。
+# 那一步会去拉 sharp / esbuild 的全平台可选二进制包（几百 MB），
+# 网络一抖就把整个构建卡死。改成手动执行 pnpm install。
+verifyDepsBeforeRun: false
+
+# 这两个 postinstall 都不需要执行：本站不处理图片，也不需要 esbuild 下载二进制。
+allowBuilds:
+  esbuild: false
+  sharp: false
+
+minimumReleaseAgeExclude:
+  # pagefind 的平台二进制是 optionalDependencies，属于"刚发布"的包。
+  # 不放行的话 pnpm 不会把它链接进 node_modules，pagefind 直接跑不起来。
+  # 六个平台都列上，这样在 macOS / Linux 上装也不用改这个文件。
+  - pagefind@1.5.2
+  - '@pagefind/windows-x64@1.5.2'
+  - '@pagefind/windows-arm64@1.5.2'
+  - '@pagefind/darwin-x64@1.5.2'
+  - '@pagefind/darwin-arm64@1.5.2'
+  - '@pagefind/linux-x64@1.5.2'
+  - '@pagefind/linux-arm64@1.5.2'

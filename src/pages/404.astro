@@ -1,0 +1,22 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../site.config';
+---
+
+{/*
+  404 页也写完整的 description：一是被分享时（有人误传了这个地址）不至于显示一句空话，
+  二是 og 体检要求摘要不能太短。同时显式给出 image，避免它落到通用图上时描述很突兀。
+*/}
+<BaseLayout
+  title="页面不存在"
+  description={`这个地址在${SITE.name}上没有对应内容——链接可能过期了，或者词条还在写。可以回首页、看全部词条，或用搜索找。`}
+>
+  <section class="section">
+    <h1>没有这个页面</h1>
+    <p class="muted">链接可能过期了，或者词条还在写。</p>
+    <p>
+      <a href="/">回首页</a> · <a href="/browse/">全部词条</a> · <a href="/tools/">小工具</a> ·
+      <a href="/search/">搜索</a>
+    </p>
+  </section>
+</BaseLayout>

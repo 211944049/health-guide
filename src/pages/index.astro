@@ -1,0 +1,214 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SearchBox from '../components/SearchBox.astro';
+import { countByCategory, entryHref, getEntriesSorted } from '../lib/entries';
+import { TOOLS } from '../lib/tools';
+import { TOPICS } from '../lib/topics';
+import { CATEGORIES, CATEGORY_BY_LABEL, EVIDENCE_META, PLANNED_QUESTIONS, PLANNED_TOTAL, SITE, START_PATHS } from '../site.config';
+
+const entries = await getEntriesSorted();
+const counts = countByCategory(entries);
+const plannedCount = PLANNED_QUESTIONS.reduce((total, group) => total + group.items.length, 0);
+
+// 首页按「入口路径」组织，而不是按更新时间（50 条的 updated 全是同一天，排序无意义）。
+// 路径里存的是 slug，这里还原成词条对象；缺失的会被跳过，真正的把关在
+// scripts/check-start-paths.mjs（构建时校验）。
+const byId = new Map(entries.map((e) => [e.id, e]));
+const paths = START_PATHS.map((path) => ({
+  ...path,
+  items: path.entries.map((id) => byId.get(id)).filter((e): e is NonNullable<typeof e> => Boolean(e)),
+}));
+
+// 「证据最强」一栏：把 A 级词条单独拎出来，作为「最该先看」的客观依据
+const strongest = entries
+  .filter((e) => e.data.evidence === 'A')
+  .sort((a, b) => a.data.title.localeCompare(b.data.title, 'zh-CN'));
+---
+
+<BaseLayout>
+  <section class="hero">
+    <h1>{SITE.name}</h1>
+    <p class="tagline">{SITE.description}</p>
+    <SearchBox size="large" />
+    <p class="small muted">
+      搜不到就去<a href="/browse/">全部词条</a>按分类和证据等级筛。已写 {entries.length} 个词条，计划 {PLANNED_TOTAL} 个；{plannedCount > 0 ? `剩 ${plannedCount} 个选题列在下面，按高频问题优先补。` : '排期中的选题已全部写完。'}
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>从这里开始</h2>
+    <p class="small muted" style="margin-top:-0.4rem">
+      不知道从哪看？挑一个最接近你处境的入口。每组里的词条按建议顺序排列，点进去就能读。
+    </p>
+    <div class="paths">
+      {
+        paths.map((path) => (
+          <div class="path-card">
+            <h3>
+              <span aria-hidden="true">{path.emoji}</span> {path.title}
+            </h3>
+            <p class="small muted">{path.desc}</p>
+            <ol class="path-steps">
+              {path.items.map((item) => (
+                <li>
+                  <a href={entryHref(item)}>{item.data.title}</a>
+                </li>
+              ))}
+            </ol>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>按处境找：专题</h2>
+    <p class="small muted" style="margin-top:-0.4rem">
+      分类是按内容归档的，专题是按<strong>你的处境</strong>组织的，而且排好了阅读顺序——先做什么、再做什么。
+    </p>
+    <ul class="grid">
+      {
+        TOPICS.map((topic) => {
+          const total = topic.steps.reduce((n, s) => n + s.entries.length, 0);
+          return (
+            <li>
+              <a class="cat-card" href={`/topic/${topic.slug}/`}>
+                <div class="cat-title">
+                  <span aria-hidden="true">{topic.emoji}</span> {topic.title}
+                </div>
+                <div class="cat-desc">{topic.desc}</div>
+                <div class="small muted" style="margin-top:.4rem">
+                  {topic.steps.length} 步 · {total} 条词条
+                </div>
+              </a>
+            </li>
+          );
+        })
+      }
+    </ul>
+    <p class="small" style="margin-top:1rem">
+      <a href="/topic/">看全部专题 →</a>
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>小工具</h2>
+    <p class="small muted" style="margin-top:-0.4rem">
+      把「算一下就知道」的事直接算出来。全部在浏览器本地运行，输入的数据不会上传。
+    </p>
+    <ul class="grid">
+      {
+        TOOLS.map((tool) => (
+          <li>
+            <a class="cat-card" href={`/tools/${tool.slug}/`}>
+              <div class="cat-title">
+                <span aria-hidden="true">{tool.emoji}</span> {tool.title}
+              </div>
+              <div class="cat-desc">{tool.desc}</div>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="section">
+    <h2>证据最强的几条</h2>
+    <p class="small muted" style="margin-top:-0.4rem">
+      这几条是本站证据等级最高的（A 级：多项高质量研究或权威指南一致支持）。
+      如果只想看最可靠的内容，从这几条开始。
+    </p>
+    {/*
+      这里用精简卡片（只有标题 + 徽标，不显示摘要）。
+      为什么：首页已经有 6 条路径共 23 个词条链接，再给 7 张带摘要的卡片
+      会让首屏很重——而站点在大陆的加载本来就不快（见 HANDOFF 的性能诊断）。
+      标题本身已经说明问题，摘要是多余的。
+    */}
+    <ul class="entry-list compact">
+      {
+        strongest.map((entry) => {
+          const cat = CATEGORY_BY_LABEL.get(entry.data.category);
+          const ev = EVIDENCE_META[entry.data.evidence];
+          return (
+            <li>
+              <a class="entry-card" href={entryHref(entry)}>
+                <h3>{entry.data.title}</h3>
+                <div class="badges">
+                  {cat && (
+                    <span class="badge">
+                      {cat.emoji} {cat.label}
+                    </span>
+                  )}
+                  <span class={`badge badge-evidence-${entry.data.evidence}`} title={ev.desc}>
+                    {ev.short}
+                  </span>
+                  <span class="badge">成本 {entry.data.cost}</span>
+                  <span class="badge">耗时 {entry.data.time}</span>
+                </div>
+              </a>
+            </li>
+          );
+        })
+      }
+    </ul>
+  </section>
+
+  <section class="section">
+    <h2>按分类找答案</h2>
+    <ul class="grid">
+      {
+        CATEGORIES.map((category) => (
+          <li>
+            <a class="cat-card" href={`/category/${category.key}/`}>
+              <div class="cat-title">
+                {category.emoji} {category.label}
+                <span class="small muted">（{counts.get(category.label) ?? 0} 条）</span>
+              </div>
+              <div class="cat-desc">{category.desc}</div>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="small" style="margin-top:1rem">
+      <a href="/browse/">看全部 {entries.length} 个词条 →</a>
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>证据等级怎么读</h2>
+    <div class="grid">
+      {
+        Object.entries(EVIDENCE_META).map(([key, meta]) => (
+          <div class="card">
+            <strong>
+              <span class={`badge badge-evidence-${key}`}>{meta.short}</span>
+            </strong>
+            <p class="small muted" style="margin-top:.5rem">{meta.desc}</p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  {
+    plannedCount > 0 && (
+      <section class="section">
+        <h2>还没写的题</h2>
+        <p class="small muted">下面是排期中的选题。你要是想先看哪一条，可以去<a href="/about/">关于页</a>看怎么提。</p>
+        <div class="planned">
+          {PLANNED_QUESTIONS.map((group) => (
+            <div>
+              <h3>{group.category}</h3>
+              <ul>
+                {group.items.map((item) => (
+                  <li>{item}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </section>
+    )
+  }
+</BaseLayout>

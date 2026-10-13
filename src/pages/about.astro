@@ -1,0 +1,158 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { COST_LEVELS, EVIDENCE_META, SITE, TIME_LEVELS } from '../site.config';
+---
+
+<BaseLayout
+  title="关于与编辑规范"
+  description="本站的定位、谁在维护、词条模板、证据分级、合规底线，以及怎么纠错和提选题。"
+>
+  <section class="section">
+    <h1>关于本站</h1>
+    <p class="lead">
+      {SITE.name}不做在线诊所，做生活决策助手：把健康问题拆成能在日常生活里执行的动作，
+      每条都标出证据等级、成本、耗时和适用人群，并写清什么时候该去看医生。
+    </p>
+    <p>
+      灵感来自开源项目《高性价比人生指南》的结构化思路：结构化、可检索、持续更新、证据标注。
+      区别是本站聚焦「衣食住行 + 护理 + 身心 + 健康管理」这些每天都会遇到的决策。
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>一个词条长什么样</h2>
+    <p>词条统一按下面的顺序组织。<strong>带 ※ 的部分由 frontmatter 自动生成</strong>，正文里不再重复写，避免两处数字对不上：</p>
+    <ol>
+      <li>一句话结论（frontmatter 的 <code>summary</code>，没有就取正文第一段）※</li>
+      <li>适用人群（frontmatter 的 <code>audience</code>）※</li>
+      <li>具体做法 —— 步骤 / 清单 / 对比表</li>
+      <li>健康原理 —— 为什么这么做</li>
+      <li>证据等级（frontmatter 的 <code>evidence</code>）※</li>
+      <li>成本与时间（frontmatter 的 <code>cost</code> / <code>time</code>）※</li>
+      <li>常见误区</li>
+      <li>风险与禁忌</li>
+      <li>何时求助专业人士</li>
+      <li>参考来源（frontmatter 的 <code>sources</code>）※</li>
+      <li>最后更新（frontmatter 的 <code>updated</code>）※</li>
+    </ol>
+    <p class="small muted">
+      正文必须出现的六个小标题：适用人群、具体做法、健康原理、常见误区、风险与禁忌、何时求助专业人士。
+      <code>pnpm build</code> 会先跑内容体检，缺标题、枚举值写错、来源里留着 TODO 都会直接构建失败。
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>证据等级</h2>
+    <div class="grid">
+      {
+        Object.entries(EVIDENCE_META).map(([key, meta]) => (
+          <div class="card">
+            <span class={`badge badge-evidence-${key}`}>{meta.full}</span>
+            <p class="small muted" style="margin:.5rem 0 0">{meta.desc}</p>
+          </div>
+        ))
+      }
+    </div>
+    <p class="small muted">
+      证据等级是对「这条建议的证据强度」的标注，不是对「内容好不好」的评价。标 C 的建议也照做通常无害，
+      但它更依赖专家经验和间接推论，指南更新后可能被推翻，所以别把它当铁律。
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>成本与时间的口径</h2>
+    <ul>
+      <li><strong>成本</strong>：{COST_LEVELS.join(' / ')}。免费＝不花钱；低＝每月 50 元以内；中＝每月 50–300 元；高＝一次性 500 元以上或每月 300 元以上。</li>
+      <li><strong>时间</strong>：{TIME_LEVELS.join(' / ')}。指读完并照着做一次大概花多久；需要长期坚持的记「长期」。</li>
+    </ul>
+  </section>
+
+  <section class="section">
+    <h2>合规底线</h2>
+    <ul>
+      <li>每页底部有「{SITE.disclaimer}」</li>
+      <li>不诊断、不治疗、不推荐处方药，不给个体化用药剂量</li>
+      <li>涉及症状、疾病、用药的词条，必须有「何时求助专业人士」</li>
+      <li>有商业链接会明确标注（目前没有任何商业合作）</li>
+      <li>来源透明可查，不抄受版权保护的大段原文</li>
+    </ul>
+  </section>
+
+  <section class="section">
+    <h2>谁在维护这个站</h2>
+    <p>{SITE.publisherNote}</p>
+    <p>
+      所以本站的说法是<strong>有限度的</strong>：每个词条都会标出证据等级和依据，
+      证据弱的地方就说证据弱（比如「冥想」「枕头怎么选」是 C 级），
+      有争议的地方就说有争议（D 级）。<strong>你不该在这里找到「三天治好」这类话。</strong>
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>怎么纠错、怎么提选题</h2>
+    <p>
+      发现<strong>事实错误、来源过时、或者表述不清</strong>，欢迎指出来。
+      健康内容一定有错的时候，而纠错渠道是这件事唯一可靠的补救方式。
+    </p>
+
+    {/*
+      data-contact-block 锚点供 check-trust.mjs 定位。
+      为什么需要锚点：关于页的**页脚本来就含邮箱**，所以「整页搜邮箱」这种检查
+      无法区分「正文里有纠错渠道」和「只有页脚有」——正文这一节即使被删掉，
+      整页匹配照样通过（反向验证抓出来的假阳性，与饮水工具那次同类）。
+    */}
+    <div data-contact-block>
+      {
+        SITE.contactEmail ? (
+          <p class="contact-line">
+            邮箱：<a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a>
+          </p>
+        ) : (
+          <p class="notice">纠错邮箱尚未开通。在开通之前，这一节只是说明意图，无法实际联系。</p>
+        )
+      }
+    </div>
+
+    <h3>写什么最有帮助</h3>
+    <ul>
+      <li>
+        <strong>指错时带上依据</strong>：指南名 / 标准编号 / 论文（能给链接最好）。
+        只说「我觉得不对」我很难判断，而有出处我能直接去核对。
+      </li>
+      <li>
+        <strong>指出具体位置</strong>：哪一条词条、哪一段或哪句话。可以直接复制那句话。
+      </li>
+      <li>
+        <strong>提选题就直接写题目</strong>（比如「冰箱里放多久还能吃」）。
+        排期会按被问到的频次调整顺序——<strong>被问得多的先写</strong>。
+      </li>
+    </ul>
+
+    <h3>我会怎么处理</h3>
+    <ul>
+      <li>
+        核对后会<strong>直接改词条</strong>，并把 <code>updated</code> 日期更新。
+        改动是连续的，不会单独发「勘误声明」——因为每条词条的改动历史都在它的更新日期上。
+      </li>
+      <li>
+        如果是<strong>证据等级判断错了</strong>（比如 C 级其实该是 B 级），我会调整等级并说明为什么。
+      </li>
+      <li>
+        如果<strong>无法核实</strong>（比如只有个案报告），我会在词条里注明这一点，而不是当作事实写进去。
+      </li>
+    </ul>
+
+    <h3>关于回复</h3>
+    <p class="small muted">
+      {SITE.publisherNote}这个站没有团队，回复可能不及时。
+      但<strong>每一封指出具体错误的邮件都会被处理</strong>——没回复不等于没看到，
+      改动会体现在词条的更新日期上。
+    </p>
+
+    <p class="small muted">
+      另外：<strong>请不要用邮件咨询个人病情</strong>。本站不提供诊疗服务，
+      这类问题我无法回答，也可能耽误你及时就医——具体该看哪个科、什么情况要急，
+      见<a href="/entry/when-to-see-a-doctor/">什么时候该看医生</a>。
+    </p>
+  </section>
+</BaseLayout>

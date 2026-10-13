@@ -1,0 +1,22 @@
+---
+interface Props {
+  /** 大号首页搜索框用 large，页面顶部用 compact。 */
+  size?: 'large' | 'compact';
+  initial?: string;
+}
+
+const { size = 'compact', initial = '' } = Astro.props;
+---
+
+<form class="search-form" role="search" action="/search/" method="get">
+  <label class="sr-only" for={`q-${size}`} style="position:absolute;left:-9999px">搜索词条</label>
+  <input
+    id={`q-${size}`}
+    type="search"
+    name="q"
+    value={initial}
+    placeholder={size === 'large' ? '试试搜「外卖」「防晒」「久坐」' : '搜索词条…'}
+    autocomplete="off"
+  />
+  <button type="submit">搜索</button>
+</form>

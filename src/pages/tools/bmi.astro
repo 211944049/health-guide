@@ -1,0 +1,344 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { entryHref, summaryHtml } from '../../lib/entries';
+import { CATEGORY_BY_LABEL, EVIDENCE_META, SITE } from '../../site.config';
+import { TOOLS } from '../../lib/tools';
+
+const tool = TOOLS.find((t) => t.slug === 'bmi')!;
+
+const entries = await getCollection('entries');
+const byId = new Map(entries.map((e) => [e.id, e]));
+const related = tool.related.map((id) => byId.get(id)).filter((e): e is NonNullable<typeof e> => Boolean(e));
+---
+
+<BaseLayout
+  title={tool.title}
+  description="输入身高体重，算出 BMI、对应的健康体重区间与腰围判断。计算全部在浏览器本地完成，不会上传任何数据。"
+>
+  <section class="section">
+    <p class="small muted">
+      <a href="/tools/">← 全部小工具</a>
+    </p>
+
+    <h1>BMI 与健康体重区间</h1>
+
+    <p class="lead">
+      BMI 只反映「体重相对身高」这一个维度，<strong>看不出脂肪长在哪里、也分不清肌肉和脂肪</strong>。
+      所以下面除了 BMI，还会给你两件更有用的东西：<strong>对应的健康体重区间</strong>（一个范围，不是一个数，
+      所以你不必盯着某个"标准体重"），以及<strong>是否需要加测腰围</strong>。
+    </p>
+
+    <div class="tool-grid">
+      <div class="tool-card">
+        <h2>算一算</h2>
+        <div class="tool-fields">
+          <label class="tool-field">
+            <span>身高（cm）</span>
+            <input id="height" type="number" inputmode="decimal" min="90" max="230" step="0.5" placeholder="例如 170" />
+          </label>
+          <label class="tool-field">
+            <span>体重（kg）</span>
+            <input id="weight" type="number" inputmode="decimal" min="25" max="250" step="0.1" placeholder="例如 65" />
+          </label>
+          <label class="tool-field">
+            <span>腰围（cm，可选）</span>
+            <input id="waist" type="number" inputmode="decimal" min="40" max="200" step="0.5" placeholder="例如 85" />
+          </label>
+          <label class="tool-field">
+            <span>性别（腰围判断用）</span>
+            <select id="sex">
+              <option value="male">男</option>
+              <option value="female">女</option>
+            </select>
+          </label>
+        </div>
+
+        <div id="result" class="tool-result" aria-live="polite" hidden></div>
+        <p id="hint" class="small muted">填写身高和体重后自动计算。</p>
+
+        <p class="small muted" style="margin-bottom:0">
+          数据只在你自己的浏览器里计算，不会发送到任何服务器。
+        </p>
+      </div>
+
+      <div class="tool-card">
+        <h2>先看清 BMI 的边界</h2>
+        <p class="small">
+          BMI 适合用来<strong>筛</strong>人群，不适合用来<strong>判</strong>个人。下面这几类人
+          BMI 会明显失真，别拿它给自己下结论：
+        </p>
+        <ul class="small">
+          <li><strong>规律力量训练的人</strong>：肌肉比脂肪重，BMI 可能显示"超重"但体脂正常。</li>
+          <li><strong>65 岁以上</strong>：适度偏高的 BMI 反而与更低死亡风险相关，过于消瘦风险更大。</li>
+          <li><strong>孕妇、哺乳期</strong>：BMI 标准不适用，体重增长该听产科医生的。</li>
+          <li><strong>儿童与青少年</strong>：要用按年龄性别的百分位标准，不是成人的固定数值。</li>
+          <li><strong>身高过矮或过高、水肿、截肢、卧床</strong>：公式本身就会偏。</li>
+        </ul>
+        <p class="small" style="margin-bottom:0">
+          更该关注的是<strong>腰围</strong>和<strong>体重的变化趋势</strong>，而不是某一天的 BMI 数值。
+        </p>
+      </div>
+    </div>
+
+    <article class="reading" style="margin-top:2rem">
+      <h2>BMI 是怎么算的</h2>
+      <p>
+        BMI = 体重（kg）÷ 身高（m）的平方。这个公式是 19 世纪的统计学家为<strong>人群研究</strong>设计的，
+        优点是便宜、可重复，所以沿用至今；缺点是从一开始就不是为个体诊断设计的。
+      </p>
+
+      <h2>中国标准和国际标准不一样</h2>
+      <p>
+        同一个 BMI，中国人群的代谢风险高于白人，所以中国有独立的切点，
+        <strong>比 WHO 的国际标准更严</strong>：
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>判定</th>
+            <th>中国标准（本站采用）</th>
+            <th>WHO 国际标准</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>偏瘦</td><td>&lt; 18.5</td><td>&lt; 18.5</td></tr>
+          <tr><td>正常</td><td><strong>18.5 – 23.9</strong></td><td>18.5 – 24.9</td></tr>
+          <tr><td>超重</td><td><strong>24.0 – 27.9</strong></td><td>25.0 – 29.9</td></tr>
+          <tr><td>肥胖</td><td><strong>≥ 28.0</strong></td><td>≥ 30.0</td></tr>
+        </tbody>
+      </table>
+      <p class="small muted">
+        注意 24 这个分界：按 WHO 标准"正常"的 24–24.9，按中国标准已经算超重。
+      </p>
+
+      <h2>为什么还要量腰围</h2>
+      <p>
+        BMI 分不清脂肪长在哪里，而<strong>腹部脂肪（内脏脂肪）</strong>与代谢问题的关系更密切。
+        所以 BMI 正常但腰围超标的人，同样需要留意——这叫"中心性肥胖"。
+        中国标准：<strong>男性腰围 ≥ 90 cm、女性 ≥ 85 cm</strong> 即为腹型肥胖。
+      </p>
+      <p>
+        另一个更简单好用的指标是<strong>腰围身高比</strong>（腰围 ÷ 身高）：多项研究认为
+        <strong>超过 0.5 就该留意</strong>——意思是腰围别超过身高的一半。它的好处是不用记性别差异。
+      </p>
+
+      <h2>算完该做什么</h2>
+      <ul>
+        <li>
+          <strong>BMI 或腰围超标</strong>：先看<a href="/entry/oil-salt-sugar/">油盐糖怎么控</a>和
+          <a href="/entry/staple-food/">主食怎么选</a>——减重的关键是饮食结构，不是饿肚子。
+        </li>
+        <li>
+          <strong>想同时保住肌肉</strong>：<a href="/entry/strength-training/">力量训练怎么入门</a>，
+          减重期只控制饮食会掉肌肉。
+        </li>
+        <li>
+          <strong>BMI 偏低或近期明显下降</strong>：别急着庆幸，
+          <a href="/entry/when-to-see-a-doctor/">什么时候该看医生</a>里列了需要排查的情况。
+        </li>
+      </ul>
+
+      <h2>什么时候该问医生</h2>
+      <ul>
+        <li>体重在<strong>半年内无意中下降超过 5%</strong>，或短期内明显上升。</li>
+        <li>腰围快速变大、伴下肢或眼睑水肿。</li>
+        <li>已诊断高血压、糖尿病、脂肪肝、血脂异常——体重管理需要医生参与。</li>
+        <li>孕期、哺乳期、儿童青少年、进食障碍史：不要用本工具的数字做判断。</li>
+      </ul>
+
+      <p class="notice">
+        {SITE.disclaimer} 本工具只做算术，不做诊断。BMI 异常不等于生病，BMI 正常也不等于没问题——
+        有具体症状或慢性病时，请以医生的评估为准。
+      </p>
+    </article>
+
+    <section class="related">
+      <h2>相关词条</h2>
+      <ul class="entry-list">
+        {
+          related.map((item) => {
+            const cat = CATEGORY_BY_LABEL.get(item.data.category);
+            const ev = EVIDENCE_META[item.data.evidence];
+            return (
+              <li>
+                <a class="entry-card" href={entryHref(item)}>
+                  <h3>{item.data.title}</h3>
+                  {summaryHtml(item) && <p set:html={summaryHtml(item)} />}
+                  <div class="badges">
+                    {cat && (
+                      <span class="badge">
+                        {cat.emoji} {cat.label}
+                      </span>
+                    )}
+                    <span class={`badge badge-evidence-${item.data.evidence}`} title={ev.desc}>
+                      {ev.short}
+                    </span>
+                  </div>
+                </a>
+              </li>
+            );
+          })
+        }
+      </ul>
+    </section>
+  </section>
+
+  <script is:inline>
+    /*
+      BMI 计算器。全部在浏览器本地完成，不发送任何数据。
+
+      ⚠️ 判定用的是中国标准（超重 ≥24、肥胖 ≥28），不是 WHO 的 25/30。
+      原因：同一 BMI 下中国人群代谢风险更高，国内指南用的是更严的切点。
+      页面上也把两套标准并列展示，避免读者拿国际标准对照时困惑。
+
+      ⚠️ 这里的 <a href> 全指向真实存在的词条页；scripts/check-tools.mjs 会校验。
+    */
+    (function () {
+      var h = document.getElementById('height');
+      var w = document.getElementById('weight');
+      var waist = document.getElementById('waist');
+      var sex = document.getElementById('sex');
+      var out = document.getElementById('result');
+      var hint = document.getElementById('hint');
+      if (!h || !w || !out) return;
+
+      var RELATED = {
+        oil: '/entry/oil-salt-sugar/',
+        staple: '/entry/staple-food/',
+        strength: '/entry/strength-training/',
+        doctor: '/entry/when-to-see-a-doctor/',
+      };
+
+      function fmt(n, digits) {
+        return n.toFixed(digits === undefined ? 1 : digits);
+      }
+
+      /** 按身高算健康体重区间（BMI 18.5–23.9）。 */
+      function healthyRange(m) {
+        return [18.5 * m * m, 23.9 * m * m];
+      }
+
+      function classify(bmi) {
+        if (bmi < 18.5) return { label: '偏瘦', tone: 'low' };
+        if (bmi < 24) return { label: '正常', tone: 'ok' };
+        if (bmi < 28) return { label: '超重', tone: 'warn' };
+        return { label: '肥胖', tone: 'bad' };
+      }
+
+      function render() {
+        var cm = parseFloat(h.value);
+        var kg = parseFloat(w.value);
+        var waistCm = parseFloat(waist.value);
+        var isMale = sex.value === 'male';
+
+        if (!isFinite(cm) || !isFinite(kg) || cm < 90 || cm > 230 || kg < 25 || kg > 250) {
+          out.hidden = true;
+          hint.hidden = false;
+          hint.textContent = '填写身高（90–230 cm）和体重（25–250 kg）后自动计算。';
+          return;
+        }
+
+        var m = cm / 100;
+        var bmi = kg / (m * m);
+        var cls = classify(bmi);
+        var range = healthyRange(m);
+        var delta = 0;
+        if (kg < range[0]) delta = range[0] - kg;
+        else if (kg > range[1]) delta = kg - range[1];
+
+        var rows = '';
+        rows +=
+          '<div class="tool-metric"><span class="tool-metric-label">BMI</span>' +
+          '<span class="tool-metric-value">' +
+          fmt(bmi) +
+          '</span>' +
+          '<span class="tool-verdict tool-verdict-' +
+          cls.tone +
+          '">' +
+          cls.label +
+          '（中国标准）</span></div>';
+
+        rows +=
+          '<div class="tool-metric"><span class="tool-metric-label">健康体重区间</span>' +
+          '<span class="tool-metric-value">' +
+          fmt(range[0]) +
+          ' – ' +
+          fmt(range[1]) +
+          ' kg</span>' +
+          '<span class="small muted">按 BMI 18.5–23.9 折算</span></div>';
+
+        if (delta > 0) {
+          var dir = kg < range[0] ? '距离区间下限还差' : '超出区间上限';
+          rows +=
+            '<p class="small" style="margin:0.6rem 0 0">' +
+            dir +
+            ' <strong>' +
+            fmt(delta) +
+            ' kg</strong>。区间是一个范围，不必盯着某个"标准体重"。</p>';
+        } else {
+          rows += '<p class="small" style="margin:0.6rem 0 0">体重落在健康区间内。</p>';
+        }
+
+        // 腰围判断（可选）
+        if (isFinite(waistCm) && waistCm >= 40 && waistCm <= 200) {
+          var limit = isMale ? 90 : 85;
+          var ratio = waistCm / cm;
+          var waistOver = waistCm >= limit;
+          var ratioOver = ratio > 0.5;
+          var parts = [];
+          parts.push(
+            '腰围 ' +
+              fmt(waistCm) +
+              ' cm：' +
+              (waistOver
+                ? '<strong>达到腹型肥胖标准</strong>（' + (isMale ? '男' : '女') + ' ≥ ' + limit + ' cm）'
+                : '未达到腹型肥胖标准（' + (isMale ? '男' : '女') + ' &lt; ' + limit + ' cm）'),
+          );
+          parts.push(
+            '腰围身高比 ' +
+              fmt(ratio, 2) +
+              '：' +
+              (ratioOver ? '<strong>超过 0.5</strong>，建议留意' : '未超过 0.5'),
+          );
+          rows +=
+            '<div class="tool-waist small">' +
+            parts.map(function (p) { return '<p style="margin:0.3rem 0 0">' + p + '</p>'; }).join('') +
+            '</div>';
+        } else if (!isFinite(waistCm)) {
+          rows +=
+            '<p class="small muted" style="margin:0.6rem 0 0">' +
+            '腹部脂肪和代谢问题的关系比 BMI 更直接，建议量一下腰围（肚脐水平一圈，呼气末量）。</p>';
+        }
+
+        // 结论与下一步
+        var action = '';
+        if (cls.tone === 'low') {
+          action =
+            'BMI 偏低。如果近期无意中体重下降，建议查看' +
+            '<a href="' + RELATED.doctor + '">什么时候该看医生</a>。';
+        } else if (cls.tone === 'ok') {
+          action =
+            '体重在正常范围。要维持住，重点在饮食结构（<a href="' + RELATED.oil + '">油盐糖怎么控</a>）' +
+            '和保持活动量，不必刻意减重。';
+        } else {
+          action =
+            'BMI 偏高。减重的关键是饮食结构而不是饿肚子：先看<a href="' + RELATED.oil + '">油盐糖怎么控</a>' +
+            '和<a href="' + RELATED.staple + '">主食怎么选</a>；同时建议做<a href="' + RELATED.strength + '">力量训练</a>' +
+            '，否则减掉的体重里有相当一部分是肌肉。';
+        }
+        rows += '<p class="small" style="margin:0.8rem 0 0">' + action + '</p>';
+
+        out.innerHTML = rows;
+        out.hidden = false;
+        hint.hidden = true;
+      }
+
+      [h, w, waist].forEach(function (el) {
+        el.addEventListener('input', render);
+      });
+      sex.addEventListener('change', render);
+      render();
+    })();
+  </script>
+</BaseLayout>

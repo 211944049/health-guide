@@ -1,0 +1,329 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { entryHref, summaryHtml } from '../../lib/entries';
+import { CATEGORY_BY_LABEL, EVIDENCE_META, SITE } from '../../site.config';
+import { TOOLS } from '../../lib/tools';
+
+const tool = TOOLS.find((t) => t.slug === 'sedentary')!;
+
+const entries = await getCollection('entries');
+const byId = new Map(entries.map((e) => [e.id, e]));
+const related = tool.related.map((id) => byId.get(id)).filter((e): e is NonNullable<typeof e> => Boolean(e));
+---
+
+<BaseLayout
+  title={tool.title}
+  description="按 30–60 分钟循环提醒你起身活动 2–3 分钟，附一份随手能挑的活动菜单。计时完全在浏览器本地进行。"
+>
+  <section class="section">
+    <p class="small muted">
+      <a href="/tools/">← 全部小工具</a>
+    </p>
+
+    <h1>久坐提醒计时器</h1>
+
+    <p class="lead">
+      久坐的关键不是「做运动」，而是<strong>打断连续坐姿</strong>：每 30–60 分钟起来活动 2–3 分钟，
+      用接水、上厕所、站着打电话这些本来就要做的事触发。这个计时器替你数时间，
+      到点给你一份<strong>随手能挑的活动菜单</strong>——不用现想做什么，是能不能坚持的关键。
+    </p>
+
+    <div class="tool-grid">
+      <div class="tool-card">
+        <h2>计时器</h2>
+
+        <div class="tool-fields">
+          <label class="tool-field">
+            <span>坐姿间隔</span>
+            <select id="interval">
+              <option value="30">30 分钟</option>
+              <option value="45" selected>45 分钟</option>
+              <option value="60">60 分钟</option>
+            </select>
+          </label>
+          <label class="tool-field">
+            <span>活动时长</span>
+            <select id="duration">
+              <option value="2">2 分钟</option>
+              <option value="3" selected>3 分钟</option>
+              <option value="5">5 分钟</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="timer-stage">
+          <div id="timer-ring" class="timer-ring" role="timer" aria-live="off">
+            {/* 进度环：JS 通过 stroke-dashoffset 表示剩余时间 */}
+            <svg class="timer-ring-svg" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
+              <circle class="timer-ring-track" cx="60" cy="60" r="54"></circle>
+              <circle id="ring-progress" class="timer-ring-progress" cx="60" cy="60" r="54"></circle>
+            </svg>
+            <span id="timer-clock" class="timer-clock">45:00</span>
+            <span id="timer-phase" class="timer-phase">准备开始</span>
+          </div>
+        </div>
+
+        <div class="timer-controls">
+          <button id="start" type="button" class="timer-btn timer-btn-primary">开始</button>
+          <button id="pause" type="button" class="timer-btn" hidden>暂停</button>
+          <button id="reset" type="button" class="timer-btn">重置</button>
+        </div>
+
+        <p id="timer-status" class="small muted" style="margin-top:0.75rem" role="status" aria-live="polite">
+          计时在浏览器本地进行，关掉页面就停了。想收到系统通知需要在浏览器里允许通知权限。
+        </p>
+      </div>
+
+      <div class="tool-card">
+        <h2>起来这 2–3 分钟做什么</h2>
+        <p class="small muted">不用全做，挑 1–2 个就行。能坚持的低强度方案，胜过一次做全。</p>
+        <ul id="activity-menu" class="activity-menu small">
+          <li>接水、上厕所、去远处扔垃圾 <span class="muted">（最容易坚持，优先这个）</span></li>
+          <li>站着打电话、站着回消息 <span class="muted">（顺便活动脚踝）</span></li>
+          <li>靠墙静蹲 30 秒 × 2 <span class="muted">（膝盖不适就减小幅度）</span></li>
+          <li>深蹲或提踵 10 次 × 2 <span class="muted">（关节刺痛立即停）</span></li>
+          <li>颈肩绕环、扩胸 各 20 秒 <span class="muted">（动作慢，别甩头）</span></li>
+          <li>弓步压髋 每侧 20 秒 <span class="muted">（久坐让髋前侧缩短）</span></li>
+          <li>远眺 20 秒 <span class="muted">（看 6 米外的东西）</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <article class="reading" style="margin-top:2rem">
+      <h2>为什么是「每 30–60 分钟」而不是「每天运动半小时」</h2>
+      <p>
+        连续静坐是一套独立的机制：下肢肌肉不收缩，肌肉泵作用停摆，血糖和血脂的清除变慢，
+        这些变化<strong>在坐下的几十分钟内就开始出现</strong>。而一次 30 分钟的运动会打断它一次，
+        之后继续坐，机制照旧运转。
+      </p>
+      <p>
+        所以两件事要同时做：<strong>打断连续的坐姿</strong>（这个计时器管的），
+        和<strong>每周凑够 150 分钟中等强度运动</strong>（运动不能完全抵消久坐，久坐也不能靠一次运动补回来）。
+        完整做法见 <a href="/entry/sedentary-breaks/">久坐怎么缓解</a>。
+      </p>
+
+      <h2>怎么让它真的能坚持</h2>
+      <p>
+        靠意志力「记得起来」通常会失败，靠<strong>触发器</strong>才可靠：把起身绑到已有的动作上——
+        每次接水、每次会议结束、每次挂电话、每次发送长消息后。
+        计时器的价值是在头一两周帮你建立这个联结；等习惯形成，没有它也会自己起来。
+      </p>
+
+      <h2>用的时候注意</h2>
+      <ul>
+        <li>
+          <strong>通知权限是可选的</strong>：不允许也能用，只是切到别的标签页时看不到提醒。
+        </li>
+        <li>
+          <strong>关掉页面计时就停了</strong>：这是纯前端计时器，不上传数据，也不在后台跑。
+        </li>
+        <li>
+          <strong>活动时出现关节刺痛、放射性麻木或腿部无力，立刻停止</strong>，必要时就医。
+          已有腰椎间盘突出、椎管狭窄、严重骨质疏松的人，避免弯腰负重和大幅度扭转。
+        </li>
+        <li>
+          <strong>长时间站立式办公</strong>要留意静脉曲张和足底筋膜炎风险，建议抗疲劳垫 + 交替坐站。
+        </li>
+      </ul>
+
+      <p class="notice">
+        {SITE.disclaimer} 这个计时器只是个提醒工具，不能替代医生给的活动建议。
+        有心血管、骨科或代谢疾病时，先问医生再做。
+      </p>
+    </article>
+
+    <section class="related">
+      <h2>相关词条</h2>
+      <ul class="entry-list">
+        {
+          related.map((item) => {
+            const cat = CATEGORY_BY_LABEL.get(item.data.category);
+            const ev = EVIDENCE_META[item.data.evidence];
+            return (
+              <li>
+                <a class="entry-card" href={entryHref(item)}>
+                  <h3>{item.data.title}</h3>
+                  {summaryHtml(item) && <p set:html={summaryHtml(item)} />}
+                  <div class="badges">
+                    {cat && (
+                      <span class="badge">
+                        {cat.emoji} {cat.label}
+                      </span>
+                    )}
+                    <span class={`badge badge-evidence-${item.data.evidence}`} title={ev.desc}>
+                      {ev.short}
+                    </span>
+                  </div>
+                </a>
+              </li>
+            );
+          })
+        }
+      </ul>
+    </section>
+  </section>
+
+  <script is:inline>
+    /*
+      久坐提醒计时器。
+
+      ⚠️ 两个实现要点：
+      1. **用时间戳算剩余，不要 setInterval 递减计数**。浏览器会节流后台标签页的定时器
+         （最小间隔可能被拉到 1 分钟以上），递减写法会越走越慢、甚至不动。
+         这里每次 tick 都按 Date.now() 与目标时间比，所以切走再回来仍然准。
+      2. **通知权限是可选增强**：requestPermission 只在用户点「开始」时才申请
+         （浏览器要求用户手势）；被拒绝时静默退回页面内提示，不影响计时。
+
+      ⚠️ 下面这些 <a href> 指向真实存在的词条页；它们写在 script 里，
+      check-site-links.mjs 会剥掉 script 块、看不到它们，
+      所以由 scripts/check-tool-links.mjs 拿 lib/tools.ts 的清单单独验证。
+    */
+    (function () {
+      var RING = 2 * Math.PI * 54; // 半径 54 的圆周长，用于进度环
+
+      var el = {
+        interval: document.getElementById('interval'),
+        duration: document.getElementById('duration'),
+        clock: document.getElementById('timer-clock'),
+        phase: document.getElementById('timer-phase'),
+        ring: document.getElementById('timer-ring'),
+        progress: document.getElementById('ring-progress'),
+        start: document.getElementById('start'),
+        pause: document.getElementById('pause'),
+        reset: document.getElementById('reset'),
+        status: document.getElementById('timer-status'),
+      };
+      if (!el.clock || !el.start) return;
+
+      var SIT = 'sit';
+      var MOVE = 'move';
+      var phase = SIT;
+      var endsAt = 0;
+      var remainingMs = 0;
+      var running = false;
+      var ticker = null;
+
+      function fmt(ms) {
+        var total = Math.max(0, Math.ceil(ms / 1000));
+        var m = Math.floor(total / 60);
+        var s = total % 60;
+        return m + ':' + (s < 10 ? '0' : '') + s;
+      }
+
+      function totalMs() {
+        var mins = phase === SIT ? Number(el.interval.value) : Number(el.duration.value);
+        return mins * 60 * 1000;
+      }
+
+      function paint() {
+        var total = totalMs();
+        var left = running ? Math.max(0, endsAt - Date.now()) : remainingMs;
+        el.clock.textContent = fmt(left);
+        el.phase.textContent =
+          phase === SIT ? (running ? '保持坐姿' : '准备开始') : '起来活动';
+
+        // 进度环
+        var pct = total > 0 ? 1 - left / total : 0;
+        if (el.progress) {
+          el.progress.style.strokeDasharray = String(RING);
+          el.progress.style.strokeDashoffset = String(RING * (1 - Math.max(0, Math.min(1, pct))));
+        }
+        el.ring.setAttribute('data-phase', phase);
+      }
+
+      function notify(title, body) {
+        if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+        try {
+          new Notification(title, { body: body, tag: 'sedentary-timer' });
+        } catch (e) {
+          /* 部分环境（如未注册 Service Worker 的移动端）会抛错，忽略即可 */
+        }
+      }
+
+      function tick() {
+        if (!running) return;
+        var left = endsAt - Date.now();
+        if (left <= 0) {
+          if (phase === SIT) {
+            phase = MOVE;
+            notify('该起来了', '起身活动 2–3 分钟：接水、上厕所、靠墙静蹲都算。');
+            el.status.textContent = '现在起来活动一下。活动结束后会自动回到坐姿计时。';
+          } else {
+            phase = SIT;
+            notify('休息结束', '回到坐姿。计时器继续，下次到点再提醒你。');
+            el.status.textContent = '活动结束，继续坐姿计时。';
+          }
+          endsAt = Date.now() + totalMs();
+        }
+        paint();
+      }
+
+      function start() {
+        if (running) return;
+        // 首次开始时才申请通知权限（需要用户手势）
+        if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+          Notification.requestPermission().catch(function () {});
+        }
+        if (remainingMs <= 0) remainingMs = totalMs();
+        endsAt = Date.now() + remainingMs;
+        running = true;
+        el.start.hidden = true;
+        el.pause.hidden = false;
+        el.pause.textContent = '暂停';
+        el.status.textContent =
+          phase === SIT ? '正在计时。到点会提醒你起身。' : '正在活动计时。';
+        ticker = setInterval(tick, 500);
+        paint();
+      }
+
+      function pause() {
+        if (!running) {
+          start();
+          return;
+        }
+        running = false;
+        remainingMs = Math.max(0, endsAt - Date.now());
+        clearInterval(ticker);
+        ticker = null;
+        el.pause.textContent = '继续';
+        el.status.textContent = '已暂停。';
+        paint();
+      }
+
+      function reset() {
+        running = false;
+        clearInterval(ticker);
+        ticker = null;
+        phase = SIT;
+        remainingMs = totalMs();
+        el.start.hidden = false;
+        el.pause.hidden = true;
+        el.status.textContent = '已重置。点「开始」重新计时。';
+        paint();
+      }
+
+      el.start.addEventListener('click', start);
+      el.pause.addEventListener('click', pause);
+      el.reset.addEventListener('click', reset);
+
+      // 改设置时：未运行就重置到新时长；运行中则等本轮结束生效（避免打断当前节奏）
+      [el.interval, el.duration].forEach(function (sel) {
+        sel.addEventListener('change', function () {
+          if (!running && phase === SIT) {
+            remainingMs = totalMs();
+            paint();
+          }
+        });
+      });
+
+      // 切回页面时立刻对一次表——后台标签页的定时器被节流，回来要马上校正
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) tick();
+      });
+
+      remainingMs = totalMs();
+      paint();
+    })();
+  </script>
+</BaseLayout>

@@ -1,0 +1,49 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { TOPICS } from '../../lib/topics';
+import { SITE } from '../../site.config';
+---
+
+<BaseLayout
+  title="专题"
+  description={`按处境组织的专题：上班族、家庭健康、家里空气和水、从零开始运动、睡不好。每个专题都排好了建议阅读顺序。`}
+  crumbs={[]}
+>
+  <section class="section">
+    <h1>专题</h1>
+    <p class="lead">
+      分类是按内容归档的（食、衣、住、行……），一条词条只属于一个分类。
+      <strong>专题是按你的处境进组织的</strong>——一条词条可以出现在多个专题里，
+      而且每个专题都<strong>排好了阅读顺序</strong>：先做什么、再做什么。
+    </p>
+    <p class="small muted">
+      不知道从哪开始？挑一个最接近你现在情况的。
+    </p>
+
+    <ul class="grid topic-index">
+      {
+        TOPICS.map((topic) => {
+          const total = topic.steps.reduce((n, s) => n + s.entries.length, 0);
+          return (
+            <li>
+              <a class="cat-card" href={`/topic/${topic.slug}/`}>
+                <div class="cat-title">
+                  <span aria-hidden="true">{topic.emoji}</span> {topic.title}
+                </div>
+                <div class="cat-desc">{topic.desc}</div>
+                <div class="small muted" style="margin-top:.4rem">
+                  {topic.steps.length} 步 · {total} 条词条
+                </div>
+              </a>
+            </li>
+          );
+        })
+      }
+    </ul>
+
+    <p class="small muted">
+      想要按分类浏览，去<a href="/browse/">全部词条</a>；想按证据强度挑，
+      可以从<a href="/">首页</a>的「证据最强的几条」开始。
+    </p>
+  </section>
+</BaseLayout>

@@ -1,0 +1,114 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { renderInline, summaryHtml, entryHref } from '../../lib/entries';
+import { getCollection } from 'astro:content';
+import { TOPICS } from '../../lib/topics';
+import { CATEGORY_BY_LABEL, EVIDENCE_META } from '../../site.config';
+
+export async function getStaticPaths() {
+  return TOPICS.map((topic) => ({ params: { topic: topic.slug }, props: { topic } }));
+}
+
+const { topic } = Astro.props;
+
+const allEntries = await getCollection('entries');
+const byId = new Map(allEntries.map((e) => [e.id, e]));
+
+/*
+  把 steps 里的 slug 还原成词条对象。
+  缺失的 slug 会被静默跳过——真正的把关在 scripts/check-topics.mjs（构建闸门），
+  这里不在页面里报错，避免一个坏 slug 让整站构建失败却看不出原因。
+*/
+const steps = topic.steps.map((step) => ({
+  ...step,
+  items: step.entries.map((id) => byId.get(id)).filter((e): e is NonNullable<typeof e> => Boolean(e)),
+}));
+
+const total = steps.reduce((n, s) => n + s.items.length, 0);
+const categoryCount = new Set(steps.flatMap((s) => s.items.map((e) => e.data.category))).size;
+---
+
+<BaseLayout
+  title={topic.title}
+  description={topic.desc}
+  crumbs={[{ name: '专题', path: '/topic/' }]}
+>
+  <section class="section">
+    <p class="small muted"><a href="/topic/">专题</a> / {topic.title}</p>
+
+    <h1>{topic.emoji} {topic.title}</h1>
+    {/*
+      专题的 intro / desc / why / heading / audience 都是 topics.ts 里的**普通字符串**，
+      不经过 markdown 解析 —— 所以里面的 `**加粗**` 原本会原样显示成星号。
+      用 renderInline 转成 HTML（它内部已转义，set:html 安全）。
+    */}
+    <p class="lead" set:html={renderInline(topic.desc)} />
+
+    <div class="topic-meta small muted">
+      <p><strong>适合谁</strong>：<span set:html={renderInline(topic.audience)} /></p>
+      <p>
+        <strong>结构</strong>：{steps.length} 步 · {total} 条词条 · 跨 {categoryCount} 个分类
+      </p>
+    </div>
+
+    <p class="topic-intro" set:html={renderInline(topic.intro)} />
+  </section>
+
+  {
+    steps.map((step, index) => (
+      <section class="section topic-step">
+        <h2>
+          <span class="topic-step-num">{index + 1}</span> <Fragment set:html={renderInline(step.heading)} />
+        </h2>
+        <p class="small muted" set:html={renderInline(step.why)} />
+        <ul class="entry-list">
+          {step.items.map((item) => {
+            const cat = CATEGORY_BY_LABEL.get(item.data.category);
+            const ev = EVIDENCE_META[item.data.evidence];
+            return (
+              <li>
+                <a class="entry-card" href={entryHref(item)}>
+                  <h3>{item.data.title}</h3>
+                  {summaryHtml(item) && <p set:html={summaryHtml(item)} />}
+                  <div class="badges">
+                    {cat && (
+                      <span class="badge">
+                        {cat.emoji} {cat.label}
+                      </span>
+                    )}
+                    <span class={`badge badge-evidence-${item.data.evidence}`} title={ev.desc}>
+                      {ev.short}
+                    </span>
+                    <span class="badge">成本 {item.data.cost}</span>
+                    <span class="badge">耗时 {item.data.time}</span>
+                  </div>
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+    ))
+  }
+
+  <section class="section">
+    <h2>其他专题</h2>
+    <ul class="grid">
+      {
+        TOPICS.filter((t) => t.slug !== topic.slug).map((t) => (
+          <li>
+            <a class="cat-card" href={`/topic/${t.slug}/`}>
+              <div class="cat-title">
+                <span aria-hidden="true">{t.emoji}</span> {t.title}
+              </div>
+              <div class="cat-desc">{t.desc}</div>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="small muted">
+      也可以按分类浏览<a href="/browse/">全部词条</a>。
+    </p>
+  </section>
+</BaseLayout>

@@ -1,0 +1,35 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { TOOLS } from '../../lib/tools';
+import { SITE } from '../../site.config';
+---
+
+<BaseLayout title="小工具" description={`${SITE.name}的小工具：在浏览器本地计算，不上传任何数据。`}>
+  <section class="section">
+    <h1>小工具</h1>
+    <p class="lead">
+      这些工具把「算一下就知道」的事直接算出来，不用自己套公式。
+      全部在浏览器本地运行，<strong>输入的数据不会发送到任何服务器</strong>。
+    </p>
+
+    <ul class="grid tools-index">
+      {
+        TOOLS.map((tool) => (
+          <li>
+            <a class="tool-card tool-link" href={`/tools/${tool.slug}/`}>
+              <h2>
+                <span aria-hidden="true">{tool.emoji}</span> {tool.title}
+              </h2>
+              <p class="small muted">{tool.desc}</p>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <p class="small muted">
+      工具给出的都是<strong>一般性参考</strong>，不能替代医生评估。想知道某个数字背后的依据，
+      可以从<a href="/browse/">全部词条</a>里找对应主题，每条都标了证据等级和来源。
+    </p>
+  </section>
+</BaseLayout>

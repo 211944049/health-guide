@@ -1,0 +1,23 @@
+# 依赖与构建产物
+node_modules/
+dist/
+dist.zip
+.astro/
+
+# 校对用的离线阅读版（可用 node scripts/make-offline-reader.mjs 随时重新生成）
+离线阅读版-全部词条.html
+
+# pnpm 的本地 store / cache / state（相对路径，见 pnpm-workspace.yaml）
+.pnpm-store/
+.pnpm-cache/
+.pnpm-state/
+
+# 本地环境变量与日志
+.env
+.env.local
+*.log
+
+# 编辑器
+.vscode/
+.idea/
+.DS_Store

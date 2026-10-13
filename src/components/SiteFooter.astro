@@ -1,0 +1,37 @@
+---
+import { SITE } from '../site.config';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer" data-pagefind-ignore>
+  <div class="wrap">
+    <p class="disclaimer">{SITE.disclaimer}</p>
+    <p>{SITE.editionNote}</p>
+    <p>
+      词条来源均为公开指南、综述与标准，逐条列在文末；不抄受版权保护的大段原文。
+      商业链接如有会明确标注，目前没有任何商业合作。
+    </p>
+    {/*
+      纠错入口放在页脚，是为了让它在**每个页面**都能被看到——
+      读者发现错误时通常正在读那一条词条，而不是在关于页。
+      地址来自 site.config.ts 的 contactEmail（单一来源），留空时这一行不显示。
+    */}
+    {
+      SITE.contactEmail && (
+        <p>
+          发现错误或想提选题？发到 <a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a>
+          （带上依据更容易核实，详见<a href="/about/">关于与编辑规范</a>）
+        </p>
+      )
+    }
+    <p>
+      <a href="/about/">关于本站与编辑规范</a> ·
+      <a href="/browse/">全部词条</a> ·
+      <a href="/tools/">小工具</a> ·
+      <a href="/search/">搜索</a> ·
+      <a href="/rss.xml">RSS 订阅</a>
+    </p>
+    <p class="small">© {year} {SITE.name}</p>
+  </div>
+</footer>
