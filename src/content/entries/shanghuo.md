@@ -16,6 +16,8 @@ related:
   - oral-care
   - acne-care
   - herb-drug-interaction
+  - ear-care
+  - detox-myth
 summary: '"上火"是<strong>一组症状的统称</strong>，不是单一疾病：口腔溃疡、咽喉痛、牙龈肿痛、长痘、便秘、眼睛红、烦躁——它们各有各的原因和处理方式，<strong>把它们归成"一团火"会掩盖真正的问题</strong>。症状本身是真实的，但"上火"这个解释最容易导致两件事：<strong>一是乱喝凉茶和清热药</strong>（部分含马兜铃酸的药材曾导致不可逆肾衰竭），<strong>二是漏掉真正需要治疗的病</strong>（反复口腔溃疡可能是白塞病或营养缺乏，长期咽痛可能是反流）。正确做法是<strong>逐个症状找原因</strong>。'
 sources:
   - "国家中医药管理局. 中医临床诊疗与用药安全相关文件[EB/OL]. ||| http://www.natcm.gov.cn/"

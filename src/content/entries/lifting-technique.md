@@ -19,6 +19,7 @@ related:
   - muscle-soreness
   - sedentary-breaks
   - low-back-pain
+  - tuina-massage
 summary: '搬东西伤腰的核心原因是<strong>弯腰用腰发力</strong>——正确做法是<strong>屈膝下蹲、让物体贴近身体、用腿和臀发力起身</strong>，并且<strong>不要扭腰</strong>（转身时移动脚步而不要转动躯干）；几个最容易忽略的点：<strong>先把东西贴近身体再起身</strong>（离身体越远，腰部受力成倍增加）、<strong>重物分两次搬而不是硬扛</strong>、<strong>抱孩子和抱重物用同一套原则</strong>；但<strong>搬的过程中突然腰痛、伴腿麻或腿无力、或大小便失控</strong>要立即就医——最后一条是急症信号。'
 sources:
   - "国家标准 GB/T 36000 系列与《人类工效学 手工搬运》相关要求[S]."

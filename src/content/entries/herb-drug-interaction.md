@@ -17,6 +17,9 @@ related:
   - supplement-interactions
   - prepare-for-visit
   - shanghuo
+  - painkiller-safety
+  - soup-nutrition
+  - detox-myth
 summary: '<strong>能一起吃，但必须让医生知道你同时在用什么</strong>。风险不在于"中药有毒"，而在于<strong>有些中药会改变西药在体内的浓度或作用</strong>：丹参、当归、银杏会增强抗凝药效果（出血风险），贯叶连翘（圣约翰草）会让多种药物失效，甘草会升高血压并降血钾，麻黄会升高血压心率。而且<strong>"中西药隔开半小时"这个流行说法没有可靠证据支持</strong>——相互作用多数发生在吸收之后的代谢环节，隔开服用挡不住。中药和中成药也可能伤肝，部分产品还检出过重金属与农残。'
 sources:
   - "国家中医药管理局. 中药临床应用与安全管理相关文件[EB/OL]. ||| http://www.natcm.gov.cn/"

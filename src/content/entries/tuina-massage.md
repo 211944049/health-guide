@@ -16,6 +16,7 @@ related:
   - low-back-pain
   - stress-management
   - acupuncture-pain
+  - lifting-technique
 summary: '推拿按摩对<strong>腰痛</strong>有<strong>短期缓解作用</strong>，系统评价支持这一点，效果大致与热敷、运动等常见手段相当；但<strong>长期效果没有证据</strong>，通常几周后与对照组差别就消失了。真正需要警惕的是<strong>手法本身的风险</strong>：颈椎的<strong>高速旋转扳法（"咔咔"那一下）</strong>与椎动脉夹层、脑卒中相关，虽然罕见但后果严重；骨质疏松、脊柱肿瘤转移、正在服抗凝药的人风险更高。所以推拿适合当<strong>放松和短期缓解</strong>，不适合替代对腰痛原因的检查。'
 sources:
   - "中华中医药学会. 推拿临床实践与安全操作相关共识[R]. ||| https://www.cacm.org.cn/"

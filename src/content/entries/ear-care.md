@@ -17,6 +17,7 @@ related:
   - swimming
   - noise-reduction
   - earplugs
+  - shanghuo
 summary: '<strong>耳垢不需要掏，也不该掏</strong>——它是耳道自洁与防护的一部分，会自己向外移动排出（大约每天迁移 0.05–0.1 mm）；<strong>掏耳勺和棉签会把耳垢往里推、压实</strong>，还可能划伤耳道、戳破鼓膜，是耳道感染和「越掏越堵」的常见自作原因；<strong>耳朵进水</strong>多数会自己流出，可以头侧向进水一侧、轻拉耳廓、单脚跳，或用吹风机冷风远距离吹，<strong>不要用棉签捅</strong>；但<strong>耳闷持续、听力下降、耳痛、流脓、突发耳鸣伴眩晕</strong>要就医——耳闷很可能是耵聍栓塞（耳垢吸水膨胀），需要医生取出。'
 sources:
   - "中华医学会. 耳鼻咽喉头颈外科学分会关于耵聍栓塞与外耳道炎的诊疗共识[R]. ||| https://www.cma.org.cn/"

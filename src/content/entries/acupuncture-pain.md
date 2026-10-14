@@ -18,6 +18,7 @@ related:
   - when-to-see-a-doctor
   - cupping-gua-sha
   - tuina-massage
+  - menstrual-care
 summary: '针灸对<strong>慢性腰痛、颈痛、膝骨关节炎、紧张型头痛和偏头痛预防</strong>有可重复的止痛效果，多份系统评价都支持这一点。但要说清两件事：一是<strong>效应量是中等偏小</strong>，通常减少的是疼痛评分的一小部分，不是"治好"；二是<strong>相对假针灸（针扎在非穴位处）的优势较小</strong>，说明其中一部分效果来自预期与注意力，而不是针刺本身。所以它值得作为<strong>辅助手段</strong>，不能替代对病因的检查。'
 sources:
   - "中国针灸学会. 针灸临床实践与安全操作相关指南[EB/OL]. ||| https://www.caam.cn/"

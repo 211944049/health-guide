@@ -20,6 +20,8 @@ related:
   - sports-drink
   - after-sun
   - bottled-water
+  - detox-myth
+  - solar-terms-health
 summary: '判断水够不够，<strong>别数杯子，看两个身体信号</strong>——<strong>尿液颜色（透明浅黄说明够了，深黄说明喝少了）</strong>和<strong>口渴感（但口渴是滞后信号，别等它）</strong>；另外几个实用指标：<strong>体重（运动前后称重，掉 1 kg 约等于丢了 1 L 水）</strong>、<strong>排尿频率（一天 4–8 次大致正常）</strong>；<strong>老年人口渴感会变钝、尿液浓缩能力下降，是最容易不知不觉脱水的人群，需要主动安排喝水</strong>，而不是等渴。'
 sources:
   - "中国营养学会. 《中国居民膳食指南（2022）》准则六：规律进餐，足量饮水[R]. 2022. ||| https://www.cnsoc.org/"

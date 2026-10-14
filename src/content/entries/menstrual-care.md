@@ -17,6 +17,7 @@ related:
   - painkiller-safety
   - when-to-seek-mental-health-help
   - contraception
+  - acupuncture-pain
 summary: '痛经最有效的处理是<strong>提前吃非甾体抗炎药（如布洛芬）</strong>（在疼痛刚开始、还没到最痛时就吃，而不是忍到忍不住），配合<strong>下腹热敷</strong>；<strong>月经量、周期、经期长度长期稳定就属正常</strong>（周期 21–35 天、经期 2–7 天、总量约 5–80 ml），<strong>卫生巾建议每 2–4 小时换一次</strong>（棉条不超过 4–8 小时）、<strong>不要用带香型的产品</strong>；但<strong>痛到影响上学上班、止痛药无效、经量突然大增、或非经期出血</strong>，都该去看医生而不是继续忍。'
 sources:
   - "中华医学会. 妇产科学分会《原发性痛经诊断与治疗》与异常子宫出血相关指南[R]. ||| https://www.cma.org.cn/"

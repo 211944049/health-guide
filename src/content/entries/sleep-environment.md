@@ -23,6 +23,7 @@ related:
   - air-conditioner-use
   - eye-strain
   - stay-up-recovery
+  - solar-terms-health
 summary: '卧室做到「暗、静、偏凉」，床只用来睡觉，起床时间固定下来；下午之后不碰咖啡因、睡前不靠酒精助眠；躺下 20 分钟睡不着就起来换个地方待着，困了再回床——这套「刺激控制」是失眠治疗里证据最扎实的一环，优先级高于任何助眠产品。'
 sources:
   - "美国睡眠医学会. 《成人慢性失眠行为与心理治疗临床实践指南（2021）》[R]. 2021. ||| https://sleepeducation.org/"

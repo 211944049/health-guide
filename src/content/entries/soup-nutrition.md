@@ -17,6 +17,7 @@ related:
   - leftovers
   - oil-salt-sugar
   - protein
+  - herb-drug-interaction
 summary: '汤里主要是水、脂肪、嘌呤和盐，蛋白质等营养绝大部分还留在肉里——所以「喝汤补身体」不如「连汤带肉一起吃」；骨头汤的钙含量极低，不能补钙；乳白色的汤是脂肪乳化，颜色越白脂肪越多；痛风、高血压、肾病患者要特别注意汤里的嘌呤和钠。'
 sources:
   - "中国营养学会. 《中国居民膳食指南（2022）》[R]. 2022. ||| https://www.cnsoc.org/"
