@@ -17,6 +17,7 @@ related:
   - painkiller-safety
   - drug-interactions
   - supplements
+  - herb-drug-interaction
 summary: '会冲突，而且冲突常常被忽略——因为在很多人心里「保健品不是药」；几类有明确记录的冲突是：鱼油/银杏/丹参等配抗凝药（出血风险）、钙铁配部分抗生素和甲状腺药（吸收下降）、圣约翰草配多种药（药效被削弱，含部分避孕药）、维生素 K 配华法林（直接对抗）；最实用的做法是把保健品的<strong>完整成分表</strong>拍照，和药一起给药师核一次。'
 sources:
   - "国家市场监督管理总局. 《保健食品标注警示用语指南》与保健食品管理相关规定[R]. ||| https://www.samr.gov.cn/"

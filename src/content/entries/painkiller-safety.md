@@ -19,6 +19,8 @@ related:
   - drug-interactions
   - menstrual-care
   - supplement-interactions
+  - acupuncture-pain
+  - cupping-gua-sha
 summary: '家庭常备的止痛药主要两类——对乙酰氨基酚（扑热息痛）和布洛芬等非甾体抗炎药，安全要点是「别超量、别叠加、别长期自行吃」：很多复方感冒药里已含对乙酰氨基酚，同时吃两种就会超量伤肝；布洛芬这类对胃、肾和心血管有影响，胃病、肾病、心血管病和孕晚期人群要慎用或不用。'
 sources:
   - "国家药品监督管理局. 《药品说明书和标签管理规定》与解热镇痛药安全用药科普[EB/OL]. ||| https://www.nmpa.gov.cn/"

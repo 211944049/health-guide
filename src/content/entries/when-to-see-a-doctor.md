@@ -21,6 +21,7 @@ related:
   - leftovers
   - medicine-storage
   - when-to-seek-mental-health-help
+  - acupuncture-pain
 summary: '记住三类情况：<strong>（1）立刻打 120 的急症</strong>——胸痛伴大汗、突发面歪/肢体无力/说话不清（卒中）、严重呼吸困难、大出血、意识不清；<strong>（2）一两周内要去医院的信号</strong>——不明原因体重下降、持续发热、便血、无痛性肿块、久不愈合的溃疡；<strong>（3）可以先观察的</strong>——感冒、轻度腹泻等自限性问题。<strong>最常见的错误不是「跑医院太多」，而是把危险信号当成小毛病拖过去。</strong>'
 sources:
   - "世界卫生组织. 急诊转诊与警示症状（danger signs）的资料[EB/OL]. ||| https://www.who.int/health-topics"

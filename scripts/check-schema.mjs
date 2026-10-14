@@ -147,23 +147,32 @@ for (const file of htmlFiles) {
       for (const field of ['headline', 'description', 'dateModified']) {
         if (!article[field]) problems.push(`${file}: Article 缺少 ${field}`);
       }
+      /*
+        比较 JSON-LD 与 HTML 里的字符串时，**必须先把 HTML 实体解码回字符**。
+        JSON-LD 里是原始字符，而 HTML 里 `"` 会写成 `&quot;`、`'` 会写成 `&#39;`——
+        直接比较必然误报。
+
+        2026-10-13：这条以前只用在 description 上，headline 漏了。写
+        「"上火"到底是什么」这条词条时立刻被自己的闸门拦下：
+          Article.headline「"上火"到底是什么」与页面标题「&quot;上火&quot;到底是什么」不一致
+        抽成函数，避免以后再有哪个字段忘了解码。
+      */
+      const decodeEntities = (s) =>
+        s
+          .replace(/&quot;/g, '"')
+          .replace(/&#39;/g, "'")
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&amp;/g, '&');
+
       // headline 必须与 <title> 里的词条标题一致（防止复制粘贴写错）
-      const docTitle = html.match(/<title>([^<]*)<\/title>/)?.[1] ?? '';
+      const docTitle = decodeEntities(html.match(/<title>([^<]*)<\/title>/)?.[1] ?? '');
       const expectedHeadline = docTitle.split(' · ')[0];
       if (article.headline && article.headline !== expectedHeadline) {
         problems.push(`${file}: Article.headline「${article.headline}」与页面标题「${expectedHeadline}」不一致`);
       }
-      // description 必须与 meta description 一致。
-      // ⚠️ meta 标签里是 **HTML 实体**（`&quot;`），JSON-LD 里是原始字符，
-      // 直接比较会误报（第一版就踩了这个，报了 5 个假问题）。
-      // 所以要先把实体解码回字符再比。
-      const metaDescRaw = html.match(/<meta name="description" content="([^"]*)"/)?.[1] ?? '';
-      const metaDesc = metaDescRaw
-        .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'")
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&amp;/g, '&');
+      // description 必须与 meta description 一致（同样要先解码实体）
+      const metaDesc = decodeEntities(html.match(/<meta name="description" content="([^"]*)"/)?.[1] ?? '');
       if (article.description && metaDesc && article.description !== metaDesc) {
         problems.push(`${file}: Article.description 与 meta description 不一致`);
       }

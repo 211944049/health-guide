@@ -23,7 +23,7 @@
  */
 
 import { readFile, readdir } from 'node:fs/promises';
-import { execFileSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
@@ -115,28 +115,61 @@ console.log(`\n参考来源著录体检`);
 console.log(`  词条 ${files.length} 条，来源 ${total} 条`);
 console.log(`  带官方入口的来源 ${withUrl} 条（去重后 ${urls.size} 个 URL）`);
 
-/* --- 4. 逐个验证 URL --- */
+/* --- 4. 逐个验证 URL ---
+ *
+ * ⚠️ 这段的判据在 2026-10-13 修过两个 bug，与 `check-issuer-links.mjs` 同源。
+ * 两个 bug 都让**好站点被报成坏链接**，进而可能误删合法来源。
+ * 详见 check-issuer-links.mjs 的注释，这里只记要点：
+ *
+ * ① **不能丢 stdout**：原来用 `execFileSync`，curl 非零退出时抛异常，
+ *    而 `%{http_code}` 写在 **stdout** 里，一抛就丢。于是"拿到了 200
+ *    但服务器 keep-alive 不关连接"（curl 退出码 28）被报成不可达。
+ *    改用 `spawnSync`（不抛异常），**以状态码为准，退出码只作兜底**。
+ * ② **本机 schannel 可能无法校验证书吊销**（`CRYPT_E_REVOCATION_OFFLINE`）：
+ *    那是本机限制，不是站点问题。遇到就用 `--ssl-no-revoke` 重试一次。
+ *
+ * 这两条都不是"放水"：这个检查要回答的是"读者点开能不能打开"。
+ */
 if (!SKIP_URL && urls.size > 0) {
   const UA =
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36';
   let ok = 0;
   const bad = [];
+  const revocationSkipped = [];
+
+  const baseArgs = ['-sS', '-o', 'NUL', '-w', '%{http_code}', '-H', `User-Agent: ${UA}`, '--max-time', '25', '-L'];
+
+  /** 跑 curl，不抛异常 —— 保证非零退出时仍能拿到 stdout 里的状态码。 */
+  const runCurl = (args) => {
+    const r = spawnSync('curl', args, { encoding: 'utf8', maxBuffer: 1024 * 1024 });
+    const out = (r.stdout ?? '').trim();
+    return { status: r.status, out, err: r.stderr ?? '' };
+  };
+  const codeOf = (r) => (/^\d{3}$/.test(r.out) && r.out !== '000' ? r.out : `ERR(${r.status ?? '?'})`);
+
   for (const u of urls) {
-    let code = 'ERR';
-    try {
-      code = execFileSync(
-        'curl',
-        ['-sS', '-o', 'NUL', '-w', '%{http_code}', '-H', `User-Agent: ${UA}`, '--max-time', '25', '-L', u],
-        { encoding: 'utf8' },
-      ).trim();
-    } catch (e) {
-      code = `ERR(${e.status ?? '?'})`;
+    let r = runCurl([...baseArgs, u]);
+    let code = codeOf(r);
+
+    // 本机无法校验证书吊销 → 跳过该项重试一次（并记下来，不静默降级）
+    if (code.startsWith('ERR') && /CRYPT_E_REVOCATION_OFFLINE|revocation/i.test(r.err)) {
+      const r2 = runCurl([...baseArgs, '--ssl-no-revoke', u]);
+      const c2 = codeOf(r2);
+      if (!c2.startsWith('ERR')) {
+        r = r2;
+        code = c2;
+        revocationSkipped.push(u);
+      }
     }
+
     // 200 = 直接可达；403/412/429/503/445 = 反爬拦截（读者浏览器可开）
     if (code === '200' || /^(403|412|429|503|445)$/.test(code)) ok += 1;
     else bad.push({ u, code });
   }
   console.log(`  URL 可达：${ok} / ${urls.size}`);
+  if (revocationSkipped.length) {
+    console.log(`  其中 ${revocationSkipped.length} 个跳过了本机的证书吊销检查（站点本身可达）`);
+  }
   if (bad.length) {
     for (const b of bad) problems.push(`官方入口不可达：${b.u} → ${b.code}`);
   }

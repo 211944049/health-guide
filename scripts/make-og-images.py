@@ -102,7 +102,23 @@ def parse_frontmatter(path):
         mm = re.search(r'^%s:[ \t]*(.*)$' % key, fm, re.M)
         if not mm:
             return ''
-        return mm.group(1).strip().strip("'\"")
+        v = mm.group(1).strip()
+        # ⚠️ 只能剥**成对的**外层引号（2026-10-13 修）。
+        #
+        # 原来是 `.strip("'\"")`，那会反复剥掉首尾所有引号字符。
+        # 对 YAML 里的  '"上火"到底是什么'（外层单引号，内层是全角/半角引号作内容）
+        # 它会得到  上火"到底是什么  —— 把**内容里的引号也削掉了**。
+        # 而 check-og.mjs 用 js-yaml 解析，得到的是正确的  "上火"到底是什么。
+        # 两者不一致 → 该词的分享图被永久判为"内容不一致"，
+        # 且因为 0 张需重生成、1 张被判过期，形成互相矛盾的死循环。
+        #
+        # 现在按 YAML 规则只处理成对的外层引号，并还原单引号转义（'' → '）。
+        if len(v) >= 2 and v[0] == v[-1] and v[0] in ("'", '"'):
+            inner = v[1:-1]
+            if v[0] == "'":
+                inner = inner.replace("''", "'")
+            v = inner
+        return v
 
     return {
         'title': scalar('title'),

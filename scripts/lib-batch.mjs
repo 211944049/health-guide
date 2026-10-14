@@ -30,18 +30,43 @@ export function reviewAfter(evidence, today) {
   return d.toISOString().slice(0, 10);
 }
 
+/**
+ * 把自由文本字段安全地写成 YAML 标量。
+ *
+ * ⚠️ 为什么需要它（2026-10-13 踩的坑）
+ *
+ * 写「"上火"到底是什么」这条时，标题**以双引号开头**，而 `build()` 原来把
+ * title 原样拼进 frontmatter：
+ *
+ *     title: "上火"到底是什么
+ *
+ * YAML 会把开头的 `"` 当成**引号字符串的起始**，读到 `"上火"` 就结束了，
+ * 后面剩下的 `到底是什么` 成为非法内容 —— 报错是
+ * `bad indentation of a mapping entry`，**指向的却是第 1 行**，
+ * 与真正的原因（标题里的引号）看起来毫无关系，比较难查。
+ *
+ * 修法：以 YAML 特殊字符开头的标量一律加单引号，内部的单引号按 YAML 规则翻倍。
+ * 这样以后再写「"X"是什么」这类中文标题就不会踩到。
+ */
+function yamlScalar(v) {
+  const s = String(v);
+  // YAML 里这些字符出现在开头都有特殊含义；另外「冒号+空格」和「空格+井号」在中间也会截断
+  const needsQuote = /^["'[\]{}#&*!|>%@`\-?:,]/.test(s) || /:\s/.test(s) || /\s#/.test(s);
+  return needsQuote ? `'${s.replace(/'/g, "''")}'` : s;
+}
+
 /** 组装一个词条文件的完整内容。 */
 export function build(e, today) {
   const quoted = `'${String(e.summary).replace(/'/g, "''")}'`;
   const fm = [
     '---',
-    `title: ${e.title}`,
+    `title: ${yamlScalar(e.title)}`,
     `category: ${e.category}`,
     `evidence: ${e.evidence}`,
     `cost: ${e.cost}`,
     `time: ${e.time}`,
     'audience:',
-    ...e.audience.map((a) => `  - ${a}`),
+    ...e.audience.map((a) => `  - ${yamlScalar(a)}`),
     `updated: ${today}`,
     `review_after: ${reviewAfter(e.evidence, today)}`,
     'status: 完整',

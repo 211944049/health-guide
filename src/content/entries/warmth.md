@@ -19,6 +19,7 @@ related:
   - underwear-material
   - hiking-basics
   - winter-accessories
+  - moxibustion
 summary: '保暖的关键不是「穿得厚」，而是<strong>穿对层次 + 保持干燥</strong>。三层法最实用：贴身排汗层（<strong>不要纯棉</strong>）、中间保温层（抓绒、羊毛、羽绒）、外层防风防水。最容易出错的两件事是<strong>贴身层穿纯棉出汗后湿冷</strong>，以及<strong>穿太厚出汗</strong>——两者都会加速失温。手脚冰凉多数是正常的末梢循环反应，不是「体寒」。'
 sources:
   - "世界卫生组织. 低温与寒潮健康影响的资料[EB/OL]. ||| https://www.who.int/health-topics"

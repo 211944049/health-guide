@@ -18,6 +18,7 @@ related:
   - skin-moisture-oil
   - sunscreen-use
   - skin-whitening
+  - shanghuo
 summary: '<strong>先分清类型再决定怎么办</strong>：只有粉刺/黑头/白头（非炎症型）可以自己处理——<strong>过氧化苯甲酰、外用维 A 酸类（阿达帕林等）、水杨酸</strong>是有效成分；<strong>出现红肿、脓疱、结节、囊肿（炎症型）就该看皮肤科</strong>，因为中重度痤疮需要处方药，而<strong>拖延会留下永久性痘坑</strong>。<strong>绝对不要挤</strong>——挤压是加重炎症和留疤留坑的主要原因。<strong>痘痘不是"没洗干净脸"</strong>，过度清洁反而加重。'
 sources:
   - "中华医学会. 中国痤疮治疗指南与皮肤性病学相关共识[EB/OL]. ||| https://www.cma.org.cn/"

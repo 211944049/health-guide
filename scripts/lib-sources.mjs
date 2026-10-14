@@ -67,6 +67,20 @@ export const ISSUER_ENTRIES = [
   { match: /美国糖尿病学会/, label: '美国糖尿病学会', url: 'https://diabetes.org/' },
   { match: /美国妇产科学会|ACOG/, label: '美国妇产科学会', url: 'https://www.acog.org/' },
   { match: /美国泌尿外科学会|AUA/, label: '美国泌尿外科学会', url: 'https://www.auanet.org/' },
+
+  /*
+    ---- 传统医学的循证证据来源（2026-10-13 新增）----
+
+    中医词条需要"评估证据"的来源，而不是"背书中医"的来源。
+    这两个机构恰好都是**以证据评价为职责**的官方机构，适合作为评级依据：
+
+    · NCCIH（美国国家补充与整合健康中心，隶属 NIH）—— 对针灸、草药等
+      逐一给出"证据到什么程度、有什么风险"的结论，正是本站证据分级需要的口径。
+    · WHO 传统医学实况报道 —— WHO 的立场是"推进证据与规范整合"，
+      不是无条件认可；引它不会被读者误解成权威背书。
+  */
+  { match: /美国国家补充与整合健康中心|NCCIH/, label: '美国国家补充与整合健康中心', url: 'https://www.nccih.nih.gov/health' },
+  { match: /世界卫生组织传统医学|WHO 传统医学|传统医学实况报道/, label: '世界卫生组织·传统医学', url: 'https://www.who.int/news-room/fact-sheets/detail/traditional-medicine' },
   { match: /美国国家科学院、工程院与医学院|NASEM/, label: '美国国家科学院、工程院与医学院', url: 'https://www.nationalacademies.org/' },
   { match: /美国职业安全与健康管理局|OSHA/, label: '美国职业安全与健康管理局', url: 'https://www.osha.gov/' },
   { match: /美国国家职业安全卫生研究所|NIOSH/, label: '美国国家职业安全卫生研究所', url: 'https://www.cdc.gov/niosh/' },
@@ -78,7 +92,7 @@ export const ISSUER_ENTRIES = [
   { match: /欧洲药品管理局|EMA/, label: '欧洲药品管理局', url: 'https://www.ema.europa.eu/' },
   { match: /欧洲心脏病学会|ESC/, label: '欧洲心脏病学会', url: 'https://www.escardio.org/' },
   { match: /欧洲高血压学会|ESH/, label: '欧洲高血压学会', url: 'https://www.eshonline.org/' },
-  { match: /欧洲皮肤病与性病学会|EADV/, label: '欧洲皮肤病与性病学会', url: 'https://www.eadv.org/' },
+  { match: /欧洲皮肤病与性病学会|EADV/, label: '欧洲皮肤病与性病学会', url: 'https://eadv.org/' },
   { match: /英国国家卫生与临床优化研究所|NICE/, label: '英国国家卫生与临床优化研究所', url: 'https://www.nice.org.uk/guidance' },
   { match: /英国国家医疗服务体系|英国国家卫生服务|NHS/, label: '英国国家医疗服务体系', url: 'https://www.nhs.uk/' },
 
@@ -104,6 +118,39 @@ export const ISSUER_ENTRIES = [
   { match: /国家药品监督管理局/, label: '国家药品监督管理局', url: 'https://www.nmpa.gov.cn/' },
   { match: /中国互联网络信息中心|CNNIC/, label: '中国互联网络信息中心', url: 'https://www.cnnic.net.cn/' },
   { match: /中国纺织工业联合会/, label: '中国纺织工业联合会', url: 'https://www.cntac.org.cn/' },
+
+  /*
+    ---- 中医 / 传统医学（2026-10-13 新增）----
+
+    ## 为什么加这一批
+
+    用户指出站点缺少中医视角。核查后发现：**46/136 条词条里出现过中医词汇
+    （体质、排毒、湿气、上火…共 206 次），但来源库里一个中医机构都没有。**
+    即"用了中医的词，却没有中医的出处"——这是真实的不平衡。
+
+    ## 每个 URL 都实测过（用 check-issuer-links.mjs 的同一套判据）
+
+    加之前逐个验证，并**确认过页面 title 与正文含机构名**（不是错误页）：
+      中国中医科学院     title「中国中医科学院」80 KB
+      中国针灸学会       title「中国针灸学会官网」
+      中华中医药学会     title「中华中医药学会」
+      世界中医药学会联合会 title「世界中医药学会联合会」
+      中国临床试验注册中心 title「…世界卫生组织国际临床试验注册平台一级注册机构」
+
+    ## ⚠️ 两个踩过的坑（详见 check-issuer-links.mjs 的注释）
+
+    1. **国家中医药管理局的 https 在本机不可用，http 可用**。所以这里登记的是
+       `http://` —— 这不是笔误，是实测结果。
+    2. 一度以为"国内中医机构站全部不可达"，其实是**探针的两个 bug**：
+       走代理导致失败、以及 curl 非零退出时丢掉了 stdout 里的状态码。
+       修好探针后这些站点全部 200。**站点一直是好的。**
+  */
+  { match: /国家中医药管理局|中医药管理局/, label: '国家中医药管理局', url: 'http://www.natcm.gov.cn/' },
+  { match: /中国中医科学院/, label: '中国中医科学院', url: 'https://www.cacms.ac.cn/' },
+  { match: /中国针灸学会/, label: '中国针灸学会', url: 'https://www.caam.cn/' },
+  { match: /中华中医药学会/, label: '中华中医药学会', url: 'https://www.cacm.org.cn/' },
+  { match: /世界中医药学会联合会|世界中联/, label: '世界中医药学会联合会', url: 'https://www.wfcms.org/' },
+  { match: /中国临床试验注册中心|ChiCTR/, label: '中国临床试验注册中心', url: 'https://www.chictr.org.cn/' },
 ];
 
 /**

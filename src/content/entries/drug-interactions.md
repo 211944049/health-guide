@@ -17,6 +17,7 @@ related:
   - medicine-storage
   - painkiller-safety
   - supplement-interactions
+  - herb-drug-interaction
 summary: '判断能不能一起吃，靠的不是"中药和西药"这种分类，而是「有没有人去核对过」——把正在吃的<strong>所有</strong>东西（处方药、非处方药、中成药、保健品、外用药）列成一张清单，交给医生或药师核一次；有三种组合特别危险且常见：抗凝药配止痛药（出血）、多种影响血压的药叠加（低血压）、以及葡萄柚汁影响多种药代谢。'
 sources:
   - "国家药品监督管理局. 《药品说明书和标签管理规定》与药物相互作用科普[EB/OL]. ||| https://www.nmpa.gov.cn/"

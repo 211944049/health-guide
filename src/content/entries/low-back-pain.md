@@ -18,6 +18,10 @@ related:
   - stretching
   - strength-training
   - mattress-choice
+  - acupuncture-pain
+  - cupping-gua-sha
+  - moxibustion
+  - tuina-massage
 summary: '<strong>大多数急性腰疼会在 4–6 周内明显好转，而且"卧床休息"不是首选——保持适度活动恢复更快</strong>。护腰的核心是<strong>避免诱发动作（弯腰搬重、久坐不动、突然扭转）+ 恢复活动 + 逐步做核心与髋部力量训练</strong>；<strong>腰带不能长期依赖</strong>（会让肌肉更弱）。<strong>必须尽快就医的警示信号</strong>：大小便功能异常、会阴麻木、双腿无力、发热、夜间痛醒、体重明显下降、外伤后疼痛——这些可能提示需要紧急处理的问题。'
 sources:
   - "中华医学会. 骨科学与康复医学相关指南及腰痛诊疗共识[EB/OL]. ||| https://www.cma.org.cn/"

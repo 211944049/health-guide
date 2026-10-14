@@ -20,6 +20,7 @@ related:
   - first-aid-kit
   - reading-test-results
   - contraception
+  - herb-drug-interaction
 summary: '就诊前花十分钟写一张纸：这次最主要的一个问题、什么时候开始的、怎么变化的、已经做过什么、正在吃什么药（含剂量）、有什么过敏；带上既往报告和用药清单，把想问的问题按重要程度排序——这一步能明显减少「出了诊室才想起要问什么」。'
 sources:
   - "中国医师协会. 《医患沟通相关共识》与门诊沟通实践建议[R]. ||| https://www.cmda.net/"

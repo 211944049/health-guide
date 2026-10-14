@@ -21,6 +21,7 @@ related:
   - low-energy
   - when-to-seek-mental-health-help
   - stress-eating
+  - tuina-massage
 summary: '缓解压力最有效的不是「放松一下」，而是<strong>三件有证据的事</strong>：<strong>规律的中等强度运动</strong>（对情绪的效果接近部分药物）、<strong>规律的睡眠</strong>（睡眠不足会显著放大压力反应）、以及<strong>慢呼吸/正念等主动放松技术</strong>（每天 10 分钟就有可测量的效果）。同时要减少两个加重因素：<strong>酒精</strong>和<strong>过量咖啡因</strong>。如果压力已经影响功能超过 2 周，或出现躯体症状，应寻求专业帮助而不是硬扛。'
 sources:
   - "世界卫生组织. 压力管理与心理健康的资料[EB/OL]. ||| https://www.who.int/health-topics"

@@ -18,6 +18,7 @@ related:
   - adult-vaccines
   - flossing
   - mouthwash
+  - shanghuo
 summary: '口腔护理的核心就四件事：<strong>含氟牙膏每天刷 2 次、每次 2 分钟</strong>（这是防龋证据最强的一条）、<strong>每天用牙线或牙缝刷清牙缝</strong>（牙刷进不去的地方才是龋齿和牙周病高发处）、<strong>每年洗牙 1–2 次</strong>、<strong>每年做一次口腔检查</strong>。牙周病是<strong>不可逆</strong>的，早发现早处理是关键。别用「不疼就没事」判断——龋齿和牙周病早期基本不疼。'
 sources:
   - "世界卫生组织. 口腔健康的实况报道[EB/OL]. ||| https://www.who.int/health-topics"
