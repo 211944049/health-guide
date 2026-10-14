@@ -279,7 +279,7 @@ pnpm new --title "隔夜菜能不能吃" --slug leftover-dishes --category 食 -
 **未实现**（下一步候选）：
 
 - ✅ 144 条词条全部写完（累计补充五批；选题依据是「读者高频疑问 + 站上空白」，用 `run.cmd topics` 分析）。
-- ✅ **142 条版本已部署上线**，线上与本地 `170/170` 页逐字节一致（`run.cmd check:deployed`）。
+- ✅ **144 条版本已部署上线**，线上与本地 `172/172` 页逐字节一致（`run.cmd check:deployed`）。
 - ✅ **sitemap**（`@astrojs/sitemap`），已过滤掉 404 与搜索页。**170 条 URL**。
 - ✅ **搜索结果显示证据等级**（`data-pagefind-meta` + 前端注入徽标）。
 - ✅ **相关词条推荐**（`related` 字段 + 自动闭合关系图；144 条词条的关系已自动闭合）。
