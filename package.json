@@ -28,6 +28,7 @@
     "check:og": "node scripts/check-og.mjs",
     "check:schema": "node scripts/check-schema.mjs",
     "og:images": "python scripts/make-og-images.py",
+    "xhs:covers": "python scripts/make-xhs-covers.py",
     "share:cards": "node scripts/make-share-cards.mjs",
     "indexnow": "node scripts/submit-indexnow.mjs",
     "check:hidden": "node scripts/check-hidden-elements.mjs",
