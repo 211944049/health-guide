@@ -14,7 +14,6 @@ review_after: 2027-04-11
 status: 完整
 related:
   - health-checkup
-  - lab-report-basics
   - oral-care
   - flossing
   - mouthwash

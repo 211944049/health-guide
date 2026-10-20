@@ -267,6 +267,110 @@ for (const [key, fact] of Object.entries(FACTS)) {
   }
 }
 
+/* ---------- 表格一致性：同一张「用量表」出现在多条词条时必须逐格相同 ---------- */
+
+/*
+  为什么需要单独一段（2026-10-20 加）
+
+  起因：`sunscreen-use`（怎么涂）与 `sunscreen-choice`（怎么选）都有一张
+  「各部位防晒用量」表，但**数值不一致**：
+
+      部位      怎么涂        怎么选
+      单侧手臂  约 3 ml       约 1 g     ← 差 3 倍
+      单侧小腿  约 4 ml       约 2 g     ← 差 2 倍
+
+  而且「怎么选」那组**算术上和「全身约 30 ml」不自洽**
+  （1 + 1×2 + 2×2 = 7，加躯干也远不到 30 ml）。
+
+  **32 道闸门全绿却没拦住它** —— 因为 FACTS 那套机制是「单行 + 单位取数」，
+  用 `nums.some()` 判定，只要行里有一个数落在区间就通过。
+  适合「一句话里一个权威值」，**不适合比对成组的单元格**。
+
+  所以这里用另一种判据：**按部位名逐格比对**，任何一格不一致就报。
+*/
+const TABLE_PAIRS = [
+  {
+    label: '防晒各部位用量',
+    // 两条词条都有这张表，必须逐格一致
+    files: ['sunscreen-use', 'sunscreen-choice'],
+    // 用部位名定位行；每行取第一个带 ml 或 g 的数值
+    rows: ['脸 + 脖子', '单侧手臂', '单侧小腿', '全身'],
+    why: '同站两处给出不同用量会直接损伤可信度；且用量需与「全身 30 ml」自洽',
+  },
+];
+
+/** 从一条词条里抽出用量表：返回 { 部位: '数值单位' }。 */
+function extractDoseTable(text) {
+  const out = {};
+  for (const line of text.split(/\r?\n/)) {
+    if (!line.trim().startsWith('|')) continue;
+    const cells = line.split('|').map((c) => c.trim()).filter(Boolean);
+    if (cells.length < 2) continue;
+    const part = cells[0].replace(/\*\*/g, '').replace(/<[^>]+>/g, '').trim();
+    // 在第二个单元格里找「数字 + ml/g」
+    const m = cells[1].replace(/<[^>]+>/g, '').match(/([\d.]+(?:\s*[–-]\s*[\d.]+)?)\s*(ml|g)\b/i);
+    if (m) out[part] = { value: m[1].replace(/\s/g, ''), unit: m[2].toLowerCase() };
+  }
+  return out;
+}
+
+console.log('  表格一致性：');
+for (const pair of TABLE_PAIRS) {
+  const tables = {};
+  for (const slug of pair.files) {
+    const p = path.join(entriesDir, `${slug}.md`);
+    const text = await readFile(p, 'utf8').catch(() => '');
+    tables[slug] = extractDoseTable(text);
+  }
+
+  let pairProblems = 0;
+  for (const row of pair.rows) {
+    /*
+      按**前缀**匹配行名，不要求完全相同。
+      理由：两条词条对同一部位的措辞可能略有差异（实测：
+      `全身（含躯干）` vs `全身（泳装覆盖面积）`）——那是正常的表述差异，
+      不该被当成不一致。要比的是**数值**，不是标题文字。
+    */
+    const findRow = (table) => {
+      const key = Object.keys(table).find((k) => k.startsWith(row));
+      return key ? table[key] : null;
+    };
+    const found = pair.files.map((s) => ({ slug: s, cell: findRow(tables[s]) }));
+    const missing = found.filter((f) => !f.cell);
+    if (missing.length) {
+      problems.push(
+        `表格「${pair.label}」在 ${missing.map((m) => m.slug).join(', ')} 里找不到以「${row}」开头的行，或该行没有 ml/g 数值`,
+      );
+      pairProblems += 1;
+      continue;
+    }
+    // 先把单位统一到 ml（防晒霜密度近似 1 g/ml，所以数值可直接比；但单位不同仍报，避免混淆）
+    const units = new Set(found.map((f) => f.cell.unit));
+    const values = new Set(found.map((f) => f.cell.value));
+    if (values.size > 1) {
+      problems.push(
+        `表格「${pair.label}」的「${row}」不一致：` +
+          found.map((f) => `${f.slug} = ${f.cell.value} ${f.cell.unit}`).join(' / '),
+      );
+      pairProblems += 1;
+    } else if (units.size > 1) {
+      problems.push(
+        `表格「${pair.label}」的「${row}」数值相同但单位不同：` +
+          found.map((f) => `${f.slug} = ${f.cell.value} ${f.cell.unit}`).join(' / ') +
+          '　→ 请统一单位，避免读者困惑',
+      );
+      pairProblems += 1;
+    }
+  }
+
+  if (pairProblems === 0) {
+    console.log(`  ✓ ${pair.label}：${pair.files.length} 条词条的 ${pair.rows.length} 个部位逐格一致`);
+    console.log(`      依据：${pair.why}`);
+  } else {
+    console.log(`  ✗ ${pair.label}：${pairProblems} 处不一致`);
+  }
+}
+
 /* ---------- 报告 ---------- */
 
 for (const [key, fact] of Object.entries(FACTS)) {

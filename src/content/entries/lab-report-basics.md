@@ -17,7 +17,6 @@ related:
   - health-checkup
   - blood-sugar-home
   - reading-test-results
-  - toothbrush
   - menstrual-care
   - hair-washing
 summary: '看懂化验单要按四层顺序：①先分清这份单子是筛查还是诊断（体检项目的参考区间与诊断标准不是一回事）②看「项目名 + 结果 + 单位 + 参考区间」四列而不是只看箭头 ③把相关的几项放一起看，而不是一项一项看 ④拿历史结果比趋势。单次轻度异常多数只需复查，但有几类项目（血常规明显异常、便潜血阳性、肌酐升高、影像提示进一步检查）要尽快找医生。'

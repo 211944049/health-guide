@@ -67,6 +67,15 @@ def text_w(d, s, font):
     return d.textlength(s, font=font)
 
 
+# 中文排版的「禁则处理」：这些标点不能出现在行首。
+# 换行时如果下一个字符是它们，允许它**悬挂**在当前行末尾（略微超出宽度），
+# 而不是把标点单独挤到下一行开头。
+#
+# 为什么必须做：第一版没有这个规则，结果「它和抽纸是两套标准，」正好卡在
+# 宽度边界，逗号被挤到下一行行首，渲染出来像一个孤零零的 `'`，很难看。
+KINSOKU_NO_START = '、。，；：！？）】》」』”’·…%'
+
+
 def wrap(text, font, max_w, d, max_lines=3):
     """
     按像素宽度折行。中文逐字断（封面文字短，逐字够用）。
@@ -74,6 +83,8 @@ def wrap(text, font, max_w, d, max_lines=3):
     ⚠️ 必须**先按 \n 切成段**再逐段折行：PIL 的 `textlength()` 对含换行的字符串
     会抛 `ValueError: can't measure length of multiline text`。
     第一版没处理，第三张封面就崩了。
+
+    ⚠️ 标点禁则：标点不能落在行首，遇到时让它悬挂在上一行末尾。
     """
     out = []
     for seg in str(text).split('\n'):
@@ -84,7 +95,10 @@ def wrap(text, font, max_w, d, max_lines=3):
             continue
         cur = ''
         for ch in seg:
-            if text_w(d, cur + ch, font) <= max_w:
+            fits = text_w(d, cur + ch, font) <= max_w
+            # 标点悬挂：即使超宽也把它留在本行，避免行首出现标点
+            hanging = bool(cur) and ch in KINSOKU_NO_START
+            if fits or hanging:
                 cur += ch
             else:
                 out.append(cur)
@@ -129,6 +143,38 @@ SIGN_Y = H - 110   # 署名 y
 MARGIN = 90        # 左右边距
 BODY_TOP = 300     # 内容区上界（色条下留白）
 BODY_BOTTOM = SIGN_Y - 60
+
+# 安全宽度：**必须比实际画布窄**。
+# 原因：小红书在部分视图（信息流预览、搜索结果）会把 3:4 封面**裁切成方形**，
+# 贴到左右边缘的文字会被切掉。留出 90px 余量让它裁切时也安全。
+SAFE_W = W - MARGIN * 2 - 90
+
+
+def effective_width(d, text, font):
+    """
+    测量宽度时**扣除行尾悬挂的标点**。
+
+    标点禁则允许行尾标点略微超出边界（这是中文排版的标准做法），
+    如果直接量整行长度，会把这种**有意为之**的超出误报成"超宽"。
+    第一版加了禁则处理后又加严了宽度检查，结果 5 行假警报。
+    """
+    s = text
+    while s and s[-1] in KINSOKU_NO_START:
+        s = s[:-1]
+    return d.textlength(s, font=font)
+
+
+def warn_if_overflow(d, text, font, where):
+    """
+    检查一行文字是否超出安全宽度，超了就**明确警告**。
+    第一版没有这个检查，「大部分人只看 1 个」几乎顶到右边（x=90 到 1040），
+    在会被裁切的视图里就会缺字。
+    """
+    w = effective_width(d, text, font)
+    if w > SAFE_W:
+        print('  [!] 安全宽度超限：%s「%s」宽 %.0f > %.0f' % (where, text, w, SAFE_W))
+        return False
+    return True
 
 
 def layout_center(total_h):
@@ -295,15 +341,18 @@ COVERS = [
     },
     {
         'file': '02-防晒霜怎么选',
-        'template': 'list',
-        'title': '防晒霜怎么看懂',
-        'items': [
-            'SPF 管晒伤（UVB）',
-            'PA 管晒黑晒老（UVA）',
-            '两个数都要看，只有一个高不等于防护完整',
-            '靠窗、开车也要涂——UVA 能穿透玻璃',
+        'template': 'number',
+        # 第一版是「清单型 / 防晒霜怎么看懂」——偏教科书，信息流里不够抓人。
+        # 改成把「2 个数只看 1 个」这个冲突直接打在封面上，与笔记标题一致。
+        # 原本想写「大部分人只看 1 个」一行，但中文等宽字很占地方：
+        # 那句宽 969px，安全上限只有 810px。拆成 4 行既安全，视觉上也更饱满。
+        'lines': [
+            {'t': '防晒霜上有', 'c': INK},
+            {'t': '2 个数', 'c': INK},
+            {'t': '多数人', 'c': ACCENT},
+            {'t': '只看 1 个', 'c': ACCENT, 'gap': 0},
         ],
-        'note': '日常通勤 SPF30 / PA+++ 就够；户外要 SPF50+ / PA++++ 且防水',
+        'note': 'SPF 管晒伤（UVB）\nPA 管晒黑晒老（UVA）',
     },
     {
         'file': '03-洗脸巾怎么选毛巾要不要换',
@@ -324,14 +373,13 @@ COVERS = [
     },
     {
         'file': '05-抽纸和纸巾怎么选',
-        'template': 'list',
-        'title': '纸巾怎么挑',
-        'items': [
-            '看执行标准，不是看包装',
-            '原生木浆 ≠ 原生浆',
-            '"荧光剂"更多是营销恐吓',
-        ],
-        'note': '擦嘴和擦桌子的标准不一样，别混用',
+        # 原来用清单型 /「纸巾怎么挑」，钩子偏平。改问句型：
+        # 「卷筒卫生纸不能擦嘴」是几乎所有人都做过的习惯 —— 这个冲突最直接。
+        'template': 'question',
+        'question': '卷筒卫生纸\n能擦嘴吗？',
+        # ⚠️ 不能写「它和抽纸是两套标准，」——那一行约 860px，从 x=140 起排，
+        # 右端到 1000px，超出安全边界 990px。改成 8 个字。
+        'answer': '不能。\n它和抽纸标准不同，\n不是"质量差一点"。',
     },
     {
         'file': '06-牙线怎么用',
@@ -342,10 +390,56 @@ COVERS = [
 ]
 
 
+def check_safe_width(d, fonts):
+    """
+    生成前先量一遍所有文字，报告超宽的行。
+    返回超限条数（>0 时会让脚本以非零退出码结束，提醒去看）。
+
+    ⚠️ 覆盖**所有**文本字段：lines / title / items / question / answer。
+    第一版只查了前三个，漏掉了 question/answer —— 结果 05 那张的答案行
+    右端到 1000px（安全边界 990px）却没被报出来。**检查的覆盖面本身就是个 bug 源。**
+    """
+    bad = 0
+    for spec in COVERS:
+        for line in spec.get('lines', []):
+            f = fonts[line.get('size', 'big')]
+            if not warn_if_overflow(d, line['t'], f, spec['file']):
+                bad += 1
+        if spec.get('title') and not warn_if_overflow(d, spec['title'], fonts['big'], spec['file']):
+            bad += 1
+        for it in spec.get('items', []):
+            # 清单项从 x=170 起排，右边界比 MARGIN 更紧
+            if d.textlength(it, font=fonts['sm']) > W - 170 - 60:
+                print('  [!] 安全宽度超限：%s 条目「%s」' % (spec['file'], it))
+                bad += 1
+        # 问句型：question 从 x=MARGIN 起，answer 从 x=MARGIN+50 起
+        if spec.get('question'):
+            for ln in wrap(spec['question'], fonts['big'], W - 2 * MARGIN, d, 3):
+                if not warn_if_overflow(d, ln, fonts['big'], spec['file'] + ' question'):
+                    bad += 1
+        if spec.get('answer'):
+            for ln in wrap(spec['answer'], fonts['mid'], W - 240, d, 4):
+                # answer 起点是 MARGIN+50，所以可用宽度要再减 50
+                w = effective_width(d, ln, fonts['mid'])
+                if w > SAFE_W - 50:
+                    print('  [!] 安全宽度超限：%s answer「%s」宽 %.0f > %.0f'
+                          % (spec['file'], ln, w, SAFE_W - 50))
+                    bad += 1
+    return bad
+
+
 def main():
     fonts = load_fonts()
     out = os.path.abspath(OUT_DIR)
     os.makedirs(out, exist_ok=True)
+
+    # 先做安全宽度检查（裁切风险），再开始画
+    probe_img, probe_d = new_canvas()
+    overflow = check_safe_width(probe_d, fonts)
+    if overflow:
+        print('  [!] 有 %d 行超出安全宽度，可能在裁切视图中缺字（见上）\n' % overflow)
+    else:
+        print('  [OK] 所有文字都在安全宽度内（裁切安全）\n')
 
     made = 0
     for spec in COVERS:
@@ -362,6 +456,9 @@ def main():
 
     print('\n  生成 %d 张封面（1080×1440，3:4）' % made)
     print('  输出目录：%s' % out)
+    if overflow:
+        # 非零退出码：让调用方/CI 能注意到。但封面已经生成了，不阻断。
+        sys.exit(2)
 
 
 if __name__ == '__main__':
