@@ -55,13 +55,14 @@ import { SITE } from '../site.config';
           <img
             class="qr-img"
             src={SITE.supportQr}
-            alt="微信赞赏码：扫码可自愿赠与金额，不解锁任何内容"
-            width="240"
-            height="240"
+            alt="微信赞赏码：用微信扫码可自愿赠与金额，不解锁任何内容"
+            width="280"
+            height="280"
             loading="lazy"
           />
           <p class="small muted">
-            扫码不需要加好友、不会进任何群。钱直接到账，看不到你的微信号。
+            这个码只能用<strong>微信</strong>扫（支付宝和相机扫不了）。
+            扫码不需要加好友、不会进任何群，也看不到你的微信号。
           </p>
         </div>
       ) : SITE.supportUrl ? (
@@ -162,7 +163,8 @@ import { SITE } from '../site.config';
   .qr-img {
     display: block;
     margin: 1rem 0;
-    width: 240px;
+    width: 280px;
+    max-width: 100%;
     height: auto;
     border: 1px solid var(--line);
     border-radius: var(--radius);
