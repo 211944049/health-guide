@@ -73,14 +73,42 @@ if (!build || !RFC822.test(build)) problems.push(`lastBuildDate 不合法：${bu
 const bareAmp = [...xml.matchAll(/&(?!(?:amp|lt|gt|quot|apos|#\d+|#x[0-9a-fA-F]+);)/g)];
 if (bareAmp.length) problems.push(`发现 ${bareAmp.length} 处未转义的裸 &（会让 XML 解析失败）`);
 
-/* 5. 残留 Markdown 标记 */
+/* 5. 残留标记：Markdown **和** HTML 标签
+ *
+ * 为什么两类都要查（2026-10-26 补）：
+ * 这道检查原来只查 Markdown（`**`、`[文字](链接)`、反引号）。
+ * 后来全站把 12402 处 `**加粗**` 换成了 `<strong>`（修中文强调在标点旁失配），
+ * 摘要里就变成了 HTML 标签——而这里的正则不查标签，
+ * **结果 144 条里有 101 条的 description 带着字面 `<strong>`，一路发布上线。**
+ *
+ * 教训：**内容格式变了，检查也要跟着改**。
+ * 只查「我以为会出现的坏标记」，就会漏掉「后来才会出现的坏标记」。
+ */
 const mdLeaks = [];
+const htmlLeaks = [];
+/*
+  判定「残留 HTML 标签」时**只认标签名**，不能只看 &lt; / &gt;。
+  为什么（第一版我写错过）：摘要里有合法的数学符号——
+    · contraception：「IUD > 绝育 > 口服避孕药」、表格里「< 0.1%」
+    · noise-reduction：「几十元的密封条 > 几千元的隔音棉」
+  这些转义后是 `&gt;` / `&lt;`，如果一律报错就会把正常内容判成 bug
+  （实测第一版报了 2 条假阳性）。只看标签名才准确。
+*/
+const TAG_LIKE =
+  /&lt;\/?(?:strong|b|i|em|br|a|p|span|div|code|sup|sub|ul|ol|li|table|thead|tbody|tr|td|th|h[1-6])\b|<\/?(?:strong|b|i|em|br|a|p|span|div|code|sup|sub)\b[^>]*>/i;
+
 for (const item of items) {
   const desc = item.match(/<description>([\s\S]*?)<\/description>/)?.[1] ?? '';
   const title = item.match(/<title>([\s\S]*?)<\/title>/)?.[1] ?? '';
   if (/\*\*|\[[^\]]+\]\(|`/.test(desc)) mdLeaks.push(title);
+  if (TAG_LIKE.test(desc)) htmlLeaks.push(title);
 }
 if (mdLeaks.length) problems.push(`${mdLeaks.length} 条摘要残留 Markdown 标记：${mdLeaks.slice(0, 3).join(' / ')}`);
+if (htmlLeaks.length) {
+  problems.push(
+    `${htmlLeaks.length} 条摘要残留 HTML 标签（阅读器里会显示成字面 <strong>）：${htmlLeaks.slice(0, 3).join(' / ')}`,
+  );
+}
 
 /* 6. 链接必须是绝对地址、且指向真实词条页 */
 const links = items.map((i) => i.match(/<link>([^<]*)<\/link>/)?.[1]).filter(Boolean);

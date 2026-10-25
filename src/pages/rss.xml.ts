@@ -32,13 +32,23 @@ export const GET: APIRoute = async ({ site }) => {
   const rfc822 = (date: Date) => date.toUTCString();
 
   /*
-    摘要里要剥掉 Markdown 标记。
+    摘要里要剥掉 Markdown 标记**和 HTML 标签**。
+
     为什么：description 是**纯文本**（已做 XML 转义，不能放 HTML），
-    而 summaryOf() 返回的是 Markdown 源文，里面常有 `**加粗**`——
-    不剥的话订阅器里会看到一串星号。实测 38 条摘要里有这种标记。
+    而 summaryOf() 返回的是 Markdown 源文，里面常有加粗写法——
+
+      · 早期是 `**加粗**`，不剥的话订阅器里会看到一串星号
+      · 2026-10 全站把 12402 处 `**` 换成了 `<strong>`（修中文强调在
+        标点旁失配的问题），于是摘要里变成了 HTML 标签。
+        只剥 `**` 不剥标签的话，订阅器里会看到字面的 `<strong>…</strong>`。
+
+    实测：改这一行之前，144 条里有 **101 条**的 description 带字面标签
+    （453 对 `<strong>`）。而 `check-rss.mjs` 当时**没拦住**——它只查
+    「残留 Markdown」不查「残留 HTML」，属于闸门没跟上内容格式的变化。
   */
   const stripMarkdown = (value: string) =>
     value
+      .replace(/<[^>]+>/g, '') // HTML 标签（先剥，避免标签内的属性被后续规则破坏）
       .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1') // 链接只留文字
       .replace(/\*\*([^*]+)\*\*/g, '$1') // 粗体
       .replace(/(^|[^*])\*([^*]+)\*/g, '$1$2') // 斜体
