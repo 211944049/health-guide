@@ -37,7 +37,34 @@ import { SITE } from '../site.config';
   <section class="section">
     <h2>支持渠道</h2>
     {
-      SITE.supportUrl ? (
+      /*
+        三种状态，按优先级：
+        1. supportQr 有值 → 显示赞赏码图片（推荐：不依赖任何第三方平台）
+        2. supportUrl 有值 → 显示跳转按钮（爱发电等；实测目前 403，暂不可用）
+        3. 都没有 → 如实说明"渠道还没有配置"
+
+        为什么把二维码放第一位：实测爱发电 403、Ko-fi 403、BuyMeACoffee 301，
+        第三方打赏平台在这个网络下大多打不开，而赞赏码谁也关不掉。
+      */
+      SITE.supportQr ? (
+        <div class="qr-block">
+          <p>
+            用<strong>微信</strong>扫下面这个码，金额随意。这是<strong>赞赏码</strong>，
+            不是收款码——它只用于接受自愿的赠与，不会显示你的支付信息给其他人。
+          </p>
+          <img
+            class="qr-img"
+            src={SITE.supportQr}
+            alt="微信赞赏码：扫码可自愿赠与金额，不解锁任何内容"
+            width="240"
+            height="240"
+            loading="lazy"
+          />
+          <p class="small muted">
+            扫码不需要加好友、不会进任何群。钱直接到账，看不到你的微信号。
+          </p>
+        </div>
+      ) : SITE.supportUrl ? (
         <p>
           <a class="support-link" href={SITE.supportUrl} rel="noopener" target="_blank" aria-describedby="new-window-note">
             前往支持页面
@@ -46,8 +73,8 @@ import { SITE } from '../site.config';
         </p>
       ) : (
         <p>
-          <strong>支持渠道还没有配置。</strong>
-          这一页已经就位，开通之后会在这里出现入口——不需要改版，填一个地址就行。
+          <strong>支持渠道还在配置。</strong>
+          这一页已经就位：页面代码不用改，放一张赞赏码图片、或者填一个地址就行。
         </p>
       )
     }
@@ -129,6 +156,19 @@ import { SITE } from '../site.config';
     global.css 里定义的是 --brand 和 --warn，**没有 --accent**——
     第一版我写了 var(--accent) 靠 fallback 才没坏，但那是碰巧。
   */
+  .qr-block {
+    margin: 1rem 0;
+  }
+  .qr-img {
+    display: block;
+    margin: 1rem 0;
+    width: 240px;
+    height: auto;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: #fff;
+    padding: 10px;
+  }
   .support-link {
     display: inline-block;
     padding: 0.6rem 1.4rem;

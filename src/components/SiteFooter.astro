@@ -32,11 +32,16 @@ const year = new Date().getFullYear();
       <a href="/search/">搜索</a> ·
       <a href="/rss.xml">RSS 订阅</a> ·
       {/*
-        支持页的入口**只在配置了渠道时**才出现。
-        理由：一个还没开通渠道的「支持我」链接放在每页页脚，
-        会让人以为在募捐；而这一页本身随时可以从关于页进入。
+        支持页入口：**只在真的配置了渠道时**才出现「支持本站」。
+        否则显示「为什么不放广告」——指向同一页，但说的是"我为什么选择不靠广告"，
+        避免在还没开通渠道时就让人以为在募捐。
+        二维码和链接两种渠道任一存在，都算"已配置"。
       */}
-      {SITE.supportUrl ? <a href="/support/">支持本站</a> : <a href="/support/">为什么不放广告</a>}
+      {SITE.supportUrl || SITE.supportQr ? (
+        <a href="/support/">支持本站</a>
+      ) : (
+        <a href="/support/">为什么不放广告</a>
+      )}
     </p>
     <p class="small">© {year} {SITE.name}</p>
   </div>
