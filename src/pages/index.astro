@@ -4,11 +4,20 @@ import SearchBox from '../components/SearchBox.astro';
 import { countByCategory, entryHref, getEntriesSorted } from '../lib/entries';
 import { TOOLS } from '../lib/tools';
 import { TOPICS } from '../lib/topics';
-import { CATEGORIES, CATEGORY_BY_LABEL, EVIDENCE_META, PLANNED_QUESTIONS, PLANNED_TOTAL, SITE, START_PATHS } from '../site.config';
+import { CATEGORIES, CATEGORY_BY_LABEL, EVIDENCE_META, PLANNED_QUESTIONS, SITE, START_PATHS } from '../site.config';
 
 const entries = await getEntriesSorted();
 const counts = countByCategory(entries);
 const plannedCount = PLANNED_QUESTIONS.reduce((total, group) => total + group.items.length, 0);
+/*
+  首页不再显示「计划 N 个」。
+  原因（2026-10-26）：原先写死 PLANNED_TOTAL = 115，而实际已写到 144，
+  页面上就出现「已写 144 个，计划 115 个」这种自相矛盾的话。
+  而且维护者还会继续加新词条，一个固定目标本身就是错的——
+  目标值只会在被超过之后变成一句废话。
+  改报「已写多少 + 覆盖几个分类」，两个都是事实，不会过期。
+*/
+const categoryCount = new Set(entries.map((e) => e.data.category)).size;
 
 // 首页按「入口路径」组织，而不是按更新时间（50 条的 updated 全是同一天，排序无意义）。
 // 路径里存的是 slug，这里还原成词条对象；缺失的会被跳过，真正的把关在
@@ -31,7 +40,7 @@ const strongest = entries
     <p class="tagline">{SITE.description}</p>
     <SearchBox size="large" />
     <p class="small muted">
-      搜不到就去<a href="/browse/">全部词条</a>按分类和证据等级筛。已写 {entries.length} 个词条，计划 {PLANNED_TOTAL} 个；{plannedCount > 0 ? `剩 ${plannedCount} 个选题列在下面，按高频问题优先补。` : '排期中的选题已全部写完。'}
+      搜不到就去<a href="/browse/">全部词条</a>按分类和证据等级筛。目前已写 {entries.length} 个词条，覆盖 {categoryCount} 个分类；{plannedCount > 0 ? `还有 ${plannedCount} 个选题在排期里，按高频问题优先补。` : '新词条会陆续补充。'}
     </p>
   </section>
 

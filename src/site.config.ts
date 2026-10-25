@@ -253,6 +253,16 @@ export const START_PATHS: StartPath[] = [
 
 export const PLANNED_QUESTIONS: { category: CategoryLabel; items: string[] }[] = [];
 
-/** 计划中的词条总数，用于首页进度展示。（2026-10-11：已写 96 条） */
-export const PLANNED_TOTAL = 115;
+/*
+  原先这里有一行 `export const PLANNED_TOTAL = 115;`，用于首页进度展示。**已删除（2026-10-26）。**
+
+  两个原因：
+  ① 它会被超过。删之前实际已写到 144，首页于是显示「已写 144 个，计划 115 个」——
+     一句自相矛盾的话。目标值一旦被超过，就只剩下尴尬。
+  ② 维护者还会继续加词条，**固定总数本身就是错的设定**。
+     改成报「已写多少 + 覆盖几个分类」，两个都是事实，永远不会过期。
+
+  `PLANNED_QUESTIONS` 保留：它是一个「接下来补什么」的队列，空了就不显示；
+  有内容时会列出选题。这个机制和「总目标」不是一回事。
+*/
 
