@@ -8,8 +8,8 @@ audience:
   - 通勤人群
   - 户外活动人群
   - 敏感肌
-updated: 2026-10-07
-review_after: 2027-04-07
+updated: 2026-10-20
+review_after: 2027-04-20
 status: 完整
 related:
   - underwear-material

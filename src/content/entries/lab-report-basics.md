@@ -9,8 +9,8 @@ audience:
   - 中老年人
   - 陪家人看病的人
   - 有慢性病需要定期复查的人
-updated: 2026-10-11
-review_after: 2027-04-11
+updated: 2026-10-20
+review_after: 2027-04-20
 status: 完整
 related:
   - prepare-for-visit

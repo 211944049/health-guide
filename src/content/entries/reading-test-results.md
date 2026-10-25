@@ -8,8 +8,8 @@ audience:
   - 刚做完体检的人
   - 中老年人
   - 有慢性病的人
-updated: 2026-10-09
-review_after: 2027-04-09
+updated: 2026-10-20
+review_after: 2027-04-20
 status: 完整
 related:
   - blood-pressure-at-home
