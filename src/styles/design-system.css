@@ -84,7 +84,19 @@
   --fs-lg: clamp(1.2rem, 1.12rem + 0.4vw, 1.38rem);
   --fs-xl: clamp(1.45rem, 1.3rem + 0.75vw, 1.78rem);
   --fs-2xl: clamp(1.85rem, 1.55rem + 1.5vw, 2.5rem);
-  --fs-3xl: clamp(2.3rem, 1.75rem + 2.6vw, 3.5rem);
+  /*
+    H1 的上界 = 2.7rem（43px）。
+
+    为什么不是更大：中文正文标题最长 16 字（实测 149 条里最长的
+    「经期不适怎么缓解、卫生用品怎么选」），而版心 46rem = 736px。
+      16 × 43 = 688 ≤ 736  → **最长标题也能一行放下**
+    原来是 3.5rem（56px），一行只放得下 12 字，于是 13 字以上的标题必然折行，
+    而 `text-wrap: balance` 为了拉平两行会**直接切断词语**（实测「危险」
+    被拆成「危」「险」两行）。**中文字号的上限不该由审美定，该由最长的标题定。**
+  */
+  --fs-3xl: clamp(1.85rem, 1.42rem + 1.45vw, 2.7rem);
+  /* 首页 hero 的标题只有 9 个字，可以单独放大——见下方的 .hero h1 */
+  --fs-hero: clamp(2.1rem, 1.55rem + 2.5vw, 3.3rem);
 
   /* 行高：中文比拉丁需要更松，标题反过来要更紧 */
   --lh-tight: 1.2;
@@ -126,7 +138,8 @@
 
   /* 版心：正文 66 字符左右最舒服，中文按 34–36 字/行折算 */
   --wrap: 1120px;
-  --wrap-read: 44rem;
+  /* 46rem = 736px：让最长 16 字的标题在 43px 字号下一行放得下 */
+  --wrap-read: 46rem;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -217,10 +230,18 @@ h4 {
   font-weight: 700;
   /* 让长标题自己找平衡点，避免最后一行只剩一个字 */
   text-wrap: balance;
+  /*
+    中文词组断行（Chrome 119+）。不支持时自动忽略，退回逐字断行。
+    逐字断行会把「危险」拆成两行——这是上一版标题看起来最别扭的地方。
+  */
+  word-break: auto-phrase;
 }
 
 h1 {
   font-size: var(--fs-3xl);
+  /* 1.2 而不是 1.12：中文行高太紧两行会贴在一起，看起来像一团 */
+  line-height: 1.2;
+  letter-spacing: -0.015em;
   margin: 0 0 var(--sp-4);
 }
 
@@ -520,7 +541,8 @@ a:hover {
 }
 
 .hero h1 {
-  font-size: var(--fs-3xl);
+  /* 首页标题只有 9 个字，可以放大到比内页 H1 更有气势 */
+  font-size: var(--fs-hero);
   letter-spacing: -0.02em;
   line-height: 1.12;
   margin-bottom: var(--sp-4);
