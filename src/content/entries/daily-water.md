@@ -24,6 +24,7 @@ related:
   - drinkware-material
   - bottled-water
   - detox-myth
+  - moistening-foods
 summary: '「一天八杯水」不是标准，按中国居民膳食指南，温和气候、低活动量下的成年男性每天喝水 1700 ml、女性 1500 ml（指饮水量，不含食物里的水）；不必数杯子，用「口渴前就喝、尿液呈浅黄」来判断更实用，热天、运动、发烧、腹泻时额外加量。'
 sources:
   - "中国营养学会. 《中国居民膳食指南（2022）》准则六：规律进餐，足量饮水[R]. 2022. ||| https://www.cnsoc.org/"

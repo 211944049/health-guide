@@ -18,6 +18,7 @@ related:
   - stretching
   - hand-foot-nail-care
   - warmth
+  - low-temperature-burn
 summary: '冬天「穿得暖」的关键不是件数多，而是把脖子、手、脚这些末梢和散热大的部位护住——围巾护颈、帽子护头、手套护手的分工各不一样；骑车和老人尤其要注意保暖与跌倒风险的平衡，围巾不要过长以免被卷进车轮。'
 sources:
   - "世界卫生组织. 寒冷天气与健康风险的一般建议[EB/OL]. ||| https://www.who.int/health-topics"

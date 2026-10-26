@@ -19,6 +19,8 @@ related:
   - sugar-substitutes
   - dairy-choice
   - supplement-interactions
+  - vitamin-d
+  - winter-tonic
 summary: '对饮食均衡的健康成人，绝大多数补剂没有证据支持，吃了只是把钱排进尿液；真正该补的只有几种情况：孕期和备孕补叶酸、严格素食者补 B12、日照不足或老年人补维生素 D、已确诊缺铁或维生素缺乏者按医嘱补。<strong>不要自己长期大剂量吃</strong>——脂溶性维生素和铁过量是有真实伤害的。'
 sources:
   - "中国营养学会. 《中国居民膳食指南（2022）》[R]. 2022. ||| https://www.cnsoc.org/"

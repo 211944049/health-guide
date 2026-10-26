@@ -17,6 +17,8 @@ related:
   - warmth
   - hydration-signs
   - sleep-environment
+  - moistening-foods
+  - winter-tonic
 summary: '二十四节气<strong>是一套很准的时间标记</strong>（它对应太阳黄经，本质是天文历法），但<strong>节气养生里的具体做法，多数属于文化传统，不是经过验证的医学建议</strong>。已有研究以文献梳理和理论溯源为主，<strong>不是干预试验</strong>——所以不能由"立秋"推出"该吃什么"。真正有用的用法是：把节气当作<strong>季节性提醒</strong>（该开加湿器了、该注意防暑了、该加被子了），而具体怎么做，请按有证据的季节性健康措施来——本站关于<strong>湿度、保暖、饮水、睡眠环境</strong>的词条就是这些措施。'
 sources:
   - "中国气象局. 二十四节气的天文定义与气候特征[EB/OL]. ||| https://www.cma.gov.cn/"

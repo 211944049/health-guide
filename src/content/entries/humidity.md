@@ -24,6 +24,7 @@ related:
   - air-conditioner-use
   - humidifier-cleaning
   - solar-terms-health
+  - moistening-foods
 summary: '室内相对湿度<strong>保持在 40%–60%、最好 50% 上下</strong>。高于 60% 会促进尘螨和霉菌繁殖（尘螨在 70%–80% 最活跃），也让人感觉闷；低于 30%–40% 会让呼吸道黏膜和皮肤干燥、加重鼻炎和静电。买个湿度计（几十元）先看得见，再用<strong>除湿机</strong>降湿、用<strong>加湿器</strong>增湿，加湿器必须定期清洗并只用纯净水。'
 sources:
   - "世界卫生组织. 《WHO guidelines for indoor air quality: dampness and mould（2009）》[EB/OL]. 2009. ||| https://www.who.int/health-topics"

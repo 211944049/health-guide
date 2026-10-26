@@ -18,6 +18,7 @@ related:
   - kitchen-fumes
   - after-sun
   - carbon-monoxide
+  - low-temperature-burn
 summary: '一个家用急救包的核心只有十来样：无菌纱布、弹力绷带、医用胶带、创可贴、消毒用品、一次性手套、剪刀镊子、体温计，加一张写着急救电话和家人用药过敏史的卡片；放在全家都知道、拿得到但幼儿够不到的位置，每半年检查一次有效期。'
 sources:
   - "中国红十字会《现场急救手册》与急救培训教材[EB/OL]."
