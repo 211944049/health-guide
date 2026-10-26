@@ -1,5 +1,12 @@
 ---
 import '../styles/global.css';
+/*
+  设计系统层：必须**在 global.css 之后**引入。
+  它重定义令牌、排版、组件与动效；global.css 里的功能件（计时器圆环、
+  饮水环、工具卡、搜索面板）保持原样不动 —— 那些是几何样式，
+  重写会静默破坏功能。详见 design-system.css 顶部的说明。
+*/
+import '../styles/design-system.css';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import BackToTop from '../components/BackToTop.astro';
@@ -117,6 +124,12 @@ const schemaJson = Astro.site
   </head>
   <body>
     {/*
+      阅读进度条。纯 CSS 的 scroll-driven animation（animation-timeline: scroll()），
+      不支持的浏览器里它只会停在 scaleX(0)，也就是看不见 —— 属优雅降级。
+      aria-hidden：它是纯装饰，不该被读屏软件念出来。
+    */}
+    <div class="read-progress" aria-hidden="true"></div>
+    {/*
       「跳到主内容」：键盘用户按第一次 Tab 就能看到它，回车即跳到 <main>。
       目标 id="main-content" 就在下面的 <main> 上 —— `check-a11y.mjs` 会校验
       这个链接存在、**且指向的目标 id 也真的存在**（否则它是个坏链接）。
@@ -133,5 +146,65 @@ const schemaJson = Astro.site
       组件内部自己处理"什么时候显示"，这里不需要传参。
     */}
     <BackToTop />
+
+    {/*
+      进入视口的淡入动效（只用原生 IntersectionObserver，无依赖）。
+
+      ## 三条安全原则
+      ① **先加类再加目标**：脚本先给 <html> 加 `reveal-ready`，CSS 里只有
+          `.reveal-ready .reveal` 才隐藏。**没有 JS 时元素完全不隐藏** ——
+          JS 挂掉也不能让内容看不见。
+      ② **尊重 prefers-reduced-motion**：用户要求减少动效时直接返回，
+         连类都不加。
+      ③ **每个元素只演出一次**：进入视口后 unobserve，避免上下滚动反复闪。
+
+      选择器的挑选标准：只选「列表/栅格里的重复单元」和「章节」，
+      不选正文段落 —— 正文逐段淡入会让人读不下去。
+    */}
+    <script>
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!prefersReduced && 'IntersectionObserver' in window) {
+        const targets = document.querySelectorAll<HTMLElement>(
+          '.section, .entry-card, .cat-card, .path-card, .tool-link, .hero',
+        );
+        if (targets.length) {
+          document.documentElement.classList.add('reveal-ready');
+          const io = new IntersectionObserver(
+            (entries) => {
+              for (const entry of entries) {
+                if (entry.isIntersecting) {
+                  entry.target.classList.add('is-in');
+                  io.unobserve(entry.target);
+                }
+              }
+            },
+            // 提前 60px 触发，滚到手边就已经在淡入，不会"追着看它出现"
+            { rootMargin: '0px 0px -60px 0px', threshold: 0.01 },
+          );
+          targets.forEach((el, i) => {
+            el.classList.add('reveal');
+            // 同一屏内错开 40ms，超过 6 个就不再增加，避免队列太长
+            el.style.setProperty('--reveal-delay', `${Math.min(i, 6) * 40}ms`);
+            io.observe(el);
+          });
+
+          /*
+            兜底：2 秒后把还没露出的元素全部显示。
+
+            为什么需要：IntersectionObserver 的回调在后台标签页、打印、
+            某些自动化环境里可能迟迟不触发。观察器不触发时元素会停在
+            opacity:0 —— 那就是「内容看不见」，是这套动效唯一真正的风险。
+
+            有了这一行，动效从「内容可见的前提」退回它本来的位置：
+            **只是额外的装饰**。
+          */
+          window.setTimeout(() => {
+            document.querySelectorAll<HTMLElement>('.reveal:not(.is-in)').forEach((el) => {
+              el.classList.add('is-in');
+            });
+          }, 2000);
+        }
+      }
+    </script>
   </body>
 </html>

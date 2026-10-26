@@ -15,7 +15,8 @@ const evidence = EVIDENCE_META[entry.data.evidence];
   摘要有 92 条含 `**加粗**`，直接文本输出会显示字面星号（这个 bug 存在很久了）。
   summaryHtml 已在内部转义 HTML，所以 set:html 是安全的。
 */
-const summary = summaryHtml(entry);
+// links:false —— 卡片本身是 <a>，摘要里不能再有 <a>（锚点嵌套会破坏 DOM）
+const summary = summaryHtml(entry, { links: false });
 const audience = audienceList(entry);
 ---
 
@@ -38,7 +39,7 @@ const audience = audienceList(entry);
       <span class="badge">成本 {entry.data.cost}</span>
       <span class="badge">耗时 {entry.data.time}</span>
       {entry.data.status === '简版' && <span class="badge">简版</span>}
-      <span class="badge">更新 {formatDate(entry.data.updated)}</span>
+      <span class="badge badge-date">更新 {formatDate(entry.data.updated)}</span>
     </div>
   </a>
 </li>

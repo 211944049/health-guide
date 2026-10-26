@@ -74,13 +74,28 @@ export function summaryOf(entry: Entry): string {
  *
  * 只做三件事：markdown 链接 → <a>、行内代码 → <code>、`**x**` → <strong>。
  */
-export function renderInline(raw: string): string {
+export function renderInline(raw: string, opts: { links?: boolean } = {}): string {
   if (!raw) return '';
+  const allowLinks = opts.links !== false;
   let out = String(raw);
 
   // 链接 [文字](url) —— 只允许站内相对路径与 http(s)，挡掉 javascript: 之类
   out = out.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (whole, text: string, href: string) => {
     if (!/^(\/|https?:)/.test(href)) return whole;
+    /*
+      卡片内部要去掉链接，只留文字（opts.links === false）。
+
+      ⚠️ 为什么必须这样（2026-10-26 修的既有 bug）
+      EntryCard 的外层就是 `<a class="entry-card">`，摘要里再渲染一个 `<a>`
+      就是**锚点嵌套**——非法 HTML。浏览器遇到内层 <a> 会提前闭合外层，于是：
+
+        · 卡片结构崩坏，摘要文字溢出到卡片外
+        · `-webkit-line-clamp` 失效（盒子已经断了），卡片高度参差不齐
+        · 整张卡片的点击区域变得不可预测
+
+      这个 bug 在改版前就存在，只是列表页扫一眼就能看见。
+    */
+    if (!allowLinks) return text;
     const external = /^https?:/.test(href);
     const attrs = external ? ' rel="nofollow noopener" target="_blank"' : '';
     return `<a href="${href}"${attrs}>${text}</a>`;
@@ -98,9 +113,12 @@ export function renderInline(raw: string): string {
 /**
  * 把 summary 转成可渲染的 HTML。
  * 保留这个包装是为了不改动已有的 7 处调用点；实现见 renderInline。
+ *
+ * 传 `{ links: false }` 时把 markdown 链接降级成纯文字 —— **卡片内部必须这样**，
+ * 因为卡片本身已经是 <a>，内部不能再有锚点（详见 renderInline 里的说明）。
  */
-export function summaryHtml(entry: Entry): string {
-  return renderInline(summaryOf(entry));
+export function summaryHtml(entry: Entry, opts: { links?: boolean } = {}): string {
+  return renderInline(summaryOf(entry), opts);
 }
 
 /** 按分类标签统计词条数量，用于首页分类卡片。 */

@@ -188,7 +188,7 @@ const review = entry.data.review_after
                 <li>
                   <a class="entry-card" href={`/entry/${item.id}/`}>
                     <h3>{item.data.title}</h3>
-                    {summaryHtml(item) && <p set:html={summaryHtml(item)} />}
+                    {summaryHtml(item, { links: false }) && <p set:html={summaryHtml(item, { links: false })} />}
                     <div class="badges">
                       {itemCategory && (
                         <span class="badge">
