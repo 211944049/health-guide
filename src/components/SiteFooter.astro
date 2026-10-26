@@ -30,18 +30,29 @@ const year = new Date().getFullYear();
       <a href="/browse/">全部词条</a> ·
       <a href="/tools/">小工具</a> ·
       <a href="/search/">搜索</a> ·
-      <a href="/rss.xml">RSS 订阅</a> ·
-      {/*
-        支持页入口：**只在真的配置了渠道时**才出现「支持本站」。
-        否则显示「为什么不放广告」——指向同一页，但说的是"我为什么选择不靠广告"，
-        避免在还没开通渠道时就让人以为在募捐。
-        二维码和链接两种渠道任一存在，都算"已配置"。
-      */}
-      {SITE.supportUrl || SITE.supportQr ? (
-        <a href="/support/">支持本站</a>
-      ) : (
-        <a href="/support/">为什么不放广告</a>
-      )}
+      <a href="/rss.xml">RSS 订阅</a>
+    </p>
+    {/*
+      支持入口从「链接行」里**拿出来单独一行**（2026-10-26）。
+
+      原因：夹在 5 个链接中间时，用户反馈根本发现不了。
+      但也不做成按钮——按钮会像广告，和「不卖货」的定位冲突。
+      折中：单独一行 + 后面自己解释"不接广告、不带货"。
+
+      未开通渠道时显示「为什么不放广告」，指向同一页但不募捐。
+    */}
+    <p class="footer-support">
+      {
+        SITE.supportUrl || SITE.supportQr ? (
+          <>
+            <a href="/support/">支持本站</a> · <span class="muted">不接广告、不带货</span>
+          </>
+        ) : (
+          <>
+            <a href="/support/">为什么不放广告</a> · <span class="muted">也没有任何商业链接</span>
+          </>
+        )
+      }
     </p>
     <p class="small">© {year} {SITE.name}</p>
   </div>

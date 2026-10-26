@@ -127,7 +127,7 @@ const entryDirs = (await readdir(path.join(distDir, 'entry'), { withFileTypes: t
 
 for (const name of entryDirs) {
   const html = await readFile(path.join(distDir, 'entry', name, 'index.html'), 'utf8');
-  const metas = [...html.matchAll(/<span data-pagefind-meta="([^"]+)">([^<]*)<\/span>/g)];
+  const metas = [...html.matchAll(/<span data-pagefind-meta="([^"]+)"[^>]*>([^<]*)<\/span>/g)];
   const keys = metas.map((m) => m[1]);
   if (!keys.includes('title') || !keys.includes('evidence')) {
     problems.push(`词条 ${name} 的页面里缺少 title/evidence 的 data-pagefind-meta 元素`);

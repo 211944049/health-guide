@@ -209,6 +209,27 @@ const review = entry.data.review_after
         </ul>
       </section>
 
+      {/*
+        支持入口（2026-10-26 新增）。
+
+        为什么放在这里：用户反馈「要滑到网页最下面、仔细看才发现」，太不显眼。
+        文档类内容的**转化最高点是「读完那一刻」**——读者刚获得价值，
+        这时候出现支持入口最自然。放在页脚链接行里等于没人看见；
+        放在顶部/侧边浮动则像广告，会伤掉「不卖货」的定位。
+
+        为什么还要加 `SITE.supportUrl || SITE.supportQr` 判断：
+        **没开通渠道时不该出现"请支持"**——那会变成一个空头承诺。
+      */}
+      {(SITE.supportUrl || SITE.supportQr) && (
+        <section class="support-nudge">
+          <p>
+            这篇帮你省下查资料的时间了吗？
+            <a href="/support/">可以请我喝杯咖啡 <span aria-hidden="true">→</span></a>
+          </p>
+          <p class="small muted">不解锁任何内容，也不影响我怎么写。</p>
+        </section>
+      )}
+
       <p class="notice">
         {SITE.disclaimer} 出现持续或加重的症状、正在用药、怀孕或哺乳、或有慢性病时，先问医生再照着本文调整。
       </p>

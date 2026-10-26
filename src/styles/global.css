@@ -1564,3 +1564,43 @@ hr {
   color: var(--text-soft);
   break-inside: avoid;
 }
+
+/* ── 支持块（词条页底部）─────────────────────────────────────────
+   为什么放在 global.css 而不是 [slug].astro 的 <style> 里：
+
+   Astro 只要组件里有 <style>，就会给**该组件的所有元素**加
+   `data-astro-cid-xxxx` 属性。这会改变每一个词条页的 HTML，
+   而 `check-search-data.mjs` 当时用
+   `/<span data-pagefind-meta="([^"]+)">/` 匹配——
+   要求属性后立刻是 `>`，多了 cid 就匹配不上，
+   **一次样式改动让 149 个词条页全部报「缺少 pagefind-meta」。**
+   （正则已同时改成容忍额外属性；样式也搬到这里，让 HTML 保持干净。）
+
+   视觉：浅色小卡 + 左侧细边框，和其他提示块同一套语言——
+   看得见，但不像广告，也不像募捐。
+*/
+.support-nudge {
+  margin: 2rem 0 1.4rem;
+  padding: 1rem 1.15rem;
+  background: var(--brand-soft);
+  border-left: 3px solid var(--brand);
+  border-radius: var(--radius);
+}
+
+.support-nudge p {
+  margin: 0;
+}
+
+.support-nudge p + p {
+  margin-top: 0.35rem;
+}
+
+.support-nudge a {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* 页脚的支持入口单独一行，比链接行稍显眼一点 */
+.footer-support {
+  margin-top: 0.2rem;
+}
