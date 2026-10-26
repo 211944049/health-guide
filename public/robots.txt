@@ -12,4 +12,17 @@ Allow: /
 Disallow: /search/
 Disallow: /404.html
 
+# 两个 sitemap 都列出来，因为搜索引擎的口味不一样：
+#
+#   sitemap-0.xml     <urlset>，176 条真实 URL
+#   sitemap-index.xml <sitemapindex>，只是指向上面那个文件
+#
+# · **百度明确声明「索引型 sitemap 不予处理」**，只认 <urlset>。
+#   所以百度要的是 sitemap-0.xml。
+# · Google 两种都吃，索引型反而更标准。
+#
+# 2026-10-26 实测：百度搜索资源平台的「今日提交上限」对新站是 0 条，
+# 手工提交按钮是灰的。所以这里把 urlset 直接写进 robots.txt ——
+# 百度爬虫读 robots.txt 时就能发现它，不用等配额。
+Sitemap: https://costlifehealth.com/sitemap-0.xml
 Sitemap: https://costlifehealth.com/sitemap-index.xml
