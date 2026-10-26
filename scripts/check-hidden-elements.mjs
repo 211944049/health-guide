@@ -20,6 +20,7 @@
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isThirdPartyVerification } from './lib/html-files.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const distDir = path.join(root, 'dist');
@@ -36,7 +37,7 @@ async function collect(dir, prefix = '') {
 
 const files = await collect(distDir);
 const cssFiles = files.filter((f) => f.endsWith('.css'));
-const htmlFiles = files.filter((f) => f.endsWith('.html'));
+const htmlFiles = files.filter((f) => f.endsWith('.html') && !isThirdPartyVerification(f));
 
 /* ---------- 1. 收集 CSS 里所有「设置 display」的规则 ---------- */
 

@@ -24,6 +24,7 @@
 import { readdir, readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isThirdPartyVerification } from './lib/html-files.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 /*
@@ -49,7 +50,7 @@ async function collect(dir, prefix = '') {
 }
 
 const allFiles = new Set(await collect(distDir));
-const htmlFiles = [...allFiles].filter((f) => f.endsWith('.html')).sort();
+const htmlFiles = [...allFiles].filter((f) => f.endsWith('.html') && !isThirdPartyVerification(f)).sort();
 
 /*
   刻意不使用的类型：

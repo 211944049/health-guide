@@ -14,6 +14,7 @@
 import { readdir, readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isThirdPartyVerification } from './lib/html-files.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const distDir = path.join(root, 'dist');
@@ -31,7 +32,7 @@ async function collect(dir, prefix = '') {
 }
 
 const allFiles = new Set(await collect(distDir));
-const htmlFiles = [...allFiles].filter((f) => f.endsWith('.html'));
+const htmlFiles = [...allFiles].filter((f) => f.endsWith('.html') && !isThirdPartyVerification(f));
 
 /** 把一个站内 URL 映射成 dist 里应当存在的文件（返回候选列表）。 */
 function candidatesFor(urlPath) {

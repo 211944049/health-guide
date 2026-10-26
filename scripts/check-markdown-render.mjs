@@ -29,6 +29,7 @@
 import { readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isThirdPartyVerification } from './lib/html-files.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const distArgIndex = process.argv.indexOf('--dist');
@@ -42,7 +43,7 @@ async function walk(dir) {
   for (const e of await readdir(dir, { withFileTypes: true })) {
     const p = path.join(dir, e.name);
     if (e.isDirectory()) out.push(...(await walk(p)));
-    else if (e.name.endsWith('.html')) out.push(p);
+    else if (e.name.endsWith('.html') && !isThirdPartyVerification(p)) out.push(p);
   }
   return out;
 }
