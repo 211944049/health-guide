@@ -29,3 +29,7 @@ HANDOFF.md
 # 生成的分享图（144 张 PNG，约 3 MB）——由 run.cmd og:images 生成，
 # 不进源码仓库：它们能从词条重新生成，而且构建闸门会校验一致性。
 public/og/
+
+# Python 缓存，不该进仓库
+__pycache__/
+*.pyc
