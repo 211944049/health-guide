@@ -29,6 +29,7 @@ sources:
   - "美国食品药品监督管理局（FDA）对乙酰氨基酚与 NSAIDs 安全用药警示[EB/OL]."
   - "中国药学会. 《常见疼痛合理用药专家共识》[R]. ||| https://www.cpa.org.cn/"
   - "欧洲药品管理局. 非甾体抗炎药心血管风险评估[EB/OL]. ||| https://www.ema.europa.eu/"
+  - "广东省疾病预防控制中心. 广东省健康风险提示与「双热」防控提醒[EB/OL]. ||| https://cdcp.gd.gov.cn/"
 ---
 
 ## 适用人群
@@ -131,6 +132,7 @@ sources:
 
 - <strong>对乙酰氨基酚</strong>：<strong>不要超过每日上限</strong>；肝病、长期大量饮酒者需更低剂量；<strong>不要与含同成分的复方药同服</strong>；服药期间禁酒。
 - <strong>NSAIDs</strong>：胃溃疡或胃出血史、严重肾病、心血管病、孕晚期、阿司匹林哮喘人群<strong>避免或严格遵医嘱</strong>；不要与抗凝药同用（须先问医生）。
+- <strong>疑似登革热、基孔肯雅热时，不要自行吃布洛芬或阿司匹林</strong>：这两种药<strong>会增加出血风险</strong>，也可能掩盖真实病情。广东省疾控在「双热」防控提示里明确要求——<strong>确诊前不要自行服用布洛芬、阿司匹林等退烧止痛药</strong>，应先就医。<sup class="ref-mark">[6]</sup>
 - <strong>儿童禁用阿司匹林</strong>（病毒感染期间），避免瑞氏综合征。
 - <strong>孕期</strong>：一律先咨询产科医生；<strong>孕晚期避免 NSAIDs</strong>。
 - <strong>哺乳期</strong>：需咨询医生后再用。

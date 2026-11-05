@@ -24,5 +24,38 @@ Disallow: /404.html
 # 2026-10-26 实测：百度搜索资源平台的「今日提交上限」对新站是 0 条，
 # 手工提交按钮是灰的。所以这里把 urlset 直接写进 robots.txt ——
 # 百度爬虫读 robots.txt 时就能发现它，不用等配额。
+# ── 明确不欢迎的爬虫 ────────────────────────────────────────────
+#
+# 判断依据是 2026-11-05 的实测（9 天访问日志）：
+#   · fresh-domain-watch  177 次  ← 域名监控，纯消耗
+#   · AhrefsBot            43 次  ← SEO 工具，不带来访问
+#   · 其余若干扫描器
+#
+# 而真正有价值的都保留：Googlebot、Bingbot、Sogou、Bytespider、
+# PetalBot（华为花瓣）、Baiduspider。
+#
+# robots.txt 只对「守规矩」的爬虫有效，所以 nginx 里也按 UA 拦了一遍
+# （见 deploy/nginx-costlifehealth.conf 的 $bad_bot）。
+User-agent: fresh-domain-watch
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: DomainMetaDataBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: ApcosysBot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
 Sitemap: https://costlifehealth.com/sitemap-0.xml
 Sitemap: https://costlifehealth.com/sitemap-index.xml
