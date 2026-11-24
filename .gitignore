@@ -1,6 +1,5 @@
 # 依赖与构建产物
 node_modules/
-dist/
 dist.zip
 .astro/
 
